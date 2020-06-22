@@ -10,12 +10,15 @@ final class OrderServiceHandler: ChannelInboundHandler {
     typealias InboundIn = HTTPServerRequestPart
     typealias OutboundOut = HTTPServerResponsePart
 
+    private let httpClient: InstrumentedHTTPClient
     private let instrument: Instrument<HTTPHeaders, HTTPHeaders>
 
-    init<I>(instrument: I)
+    init<I>(httpClient: InstrumentedHTTPClient, instrument: I)
         where I: InstrumentProtocol,
         I.InjectInto == HTTPHeaders,
         I.ExtractFrom == HTTPHeaders {
+
+        self.httpClient = httpClient
         self.instrument = Instrument(instrument)
     }
 
@@ -30,12 +33,9 @@ final class OrderServiceHandler: ChannelInboundHandler {
 
         baggage.logger.info("Handling order service request")
 
-        let client = InstrumentedHTTPClient(
-            instrument: self.instrument,
-            eventLoopGroupProvider: .shared(context.eventLoop)
-        )
+
         let request = try! HTTPClient.Request(url: "http://localhost:8081")
-        client.execute(request: request, baggage: baggage).whenComplete { _ in
+        httpClient.execute(request: request, baggage: baggage).whenComplete { _ in
             let responseHead = HTTPResponseHead(version: requestHead.version, status: .ok)
             context.eventLoop.execute {
                 context.channel.write(self.wrapOutboundOut(.head(responseHead)), promise: nil)
@@ -43,7 +43,6 @@ final class OrderServiceHandler: ChannelInboundHandler {
                 context.channel.flush()
             }
         }
-
-        // TODO: Shut down client before deinit
     }
+
 }

@@ -9,11 +9,12 @@ final class StorageServiceHandler: ChannelInboundHandler {
     typealias InboundIn = HTTPServerRequestPart
     typealias OutboundOut = HTTPServerResponsePart
 
+    let logger = Logger(label: "StorageService")
+
     func channelRead(context: ChannelHandlerContext, data: NIOAny) {
         guard case .head(let requestHead) = self.unwrapInboundIn(data) else { return }
 
         var baggage = BaggageContext()
-        let logger = Logger(label: "StorageService")
         baggage[BaggageContext.BaseLoggerKey.self] = logger
         baggage.logger.info("Handling storage service request")
 

@@ -9,15 +9,15 @@ import NIOHTTP1
 import NIO
 
 let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-let threadPool = NIOThreadPool(numberOfThreads: 6)
-threadPool.start()
+
+let httpClient = InstrumentedHTTPClient(instrument: FakeTracer(), eventLoopGroupProvider: .createNew)
 
 let orderServiceBootstrap = ServerBootstrap(group: eventLoopGroup)
     .serverChannelOption(ChannelOptions.backlog, value: 256)
     .serverChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
     .childChannelInitializer { channel in
         channel.pipeline.configureHTTPServerPipeline().flatMap {
-            channel.pipeline.addHandler(OrderServiceHandler(instrument: FakeTracer()))
+            channel.pipeline.addHandler(OrderServiceHandler(httpClient: httpClient, instrument: FakeTracer()))
         }
     }
     .childChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
@@ -44,7 +44,6 @@ logger.info("Order service listening on ::1:8080")
 let storageServiceChannel = try storageServiceBootstrap.bind(host: "localhost", port: 8081).wait()
 logger.info("Storage service listening on ::1:8081")
 
-let httpClient = HTTPClient(eventLoopGroupProvider: .createNew)
 httpClient.get(url: "http://localhost:8080").whenComplete { result in
     switch result {
     case .success(let response):
@@ -57,8 +56,9 @@ httpClient.get(url: "http://localhost:8080").whenComplete { result in
 sleep(20)
 
 try httpClient.syncShutdown()
+try orderServiceChannel.close().wait()
+try storageServiceChannel.close().wait()
 try eventLoopGroup.syncShutdownGracefully()
-try threadPool.syncShutdownGracefully()
 
 // MARK: - Fake Tracer
 
