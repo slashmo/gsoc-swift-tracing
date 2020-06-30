@@ -26,8 +26,6 @@ final class InstrumentTests: XCTestCase {
     }
 }
 
-extension Dictionary: CarrierProtocol where Key == String, Value == String {}
-
 private final class DictionaryInjector: InjectorProtocol {
     func inject(_ value: String, forKey key: String, into dictionary: inout [String: String]) {
         dictionary[key] = value

@@ -18,8 +18,6 @@ server.receive(FakeHTTPRequest(path: "/", headers: []))
 
 typealias HTTPHeaders = [(String, String)]
 
-extension Array: CarrierProtocol where Element == (String, String) {}
-
 final class HTTPHeadersExtractor: ExtractorProtocol {
     func extract(key: String, from headers: HTTPHeaders) -> String? {
         headers.first(where: { $0.0 == key })?.1

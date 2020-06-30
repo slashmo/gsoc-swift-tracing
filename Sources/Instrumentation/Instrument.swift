@@ -1,12 +1,9 @@
 import Baggage
 
-/// Conforming types are used to carry metadata over a boundary (e.g. HTTP).
-public protocol CarrierProtocol {}
-
 /// Conforming types are used to extract values from a specific `CarrierProtocol`.
 public protocol ExtractorProtocol {
-    /// The `CarrierProtocol` to extract values from.
-    associatedtype Carrier: CarrierProtocol
+    /// The carrier to extract values from.
+    associatedtype Carrier
 
     /// Extract the value for the given key from the `Carrier`.
     ///
@@ -18,8 +15,8 @@ public protocol ExtractorProtocol {
 
 /// Conforming types are used to inject values into a specific `CarrierProtocol`.
 public protocol InjectorProtocol {
-    /// The `CarrierProtocol` to inject values into.
-    associatedtype Carrier: CarrierProtocol
+    /// The carrier to inject values into.
+    associatedtype Carrier
 
     /// Inject the given value for the given key into the given `Carrier`.
     ///
@@ -30,8 +27,8 @@ public protocol InjectorProtocol {
     func inject(_ value: String, forKey key: String, into carrier: inout Carrier)
 }
 
-/// Conforming types are usually cross-cutting tools like tracers. They are agnostic of what specific `CarrierProtocol` is used
-/// to propgate metadata across boundaries, but instead just specify what values to use for which keys.
+/// Conforming types are usually cross-cutting tools like tracers. They are agnostic of what specific `Carrier` is used
+/// to propagate metadata across boundaries, but instead just specify what values to use for which keys.
 public protocol Instrument {
     /// Extract values from a `Carrier` by using the given extractor and inject them into the given `BaggageContext`.
     /// It's quite common for `Instrument`s to come up with new values if they weren't passed along in the given `Carrier`.

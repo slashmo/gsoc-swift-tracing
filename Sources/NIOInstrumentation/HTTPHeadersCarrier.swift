@@ -1,8 +1,6 @@
 import Instrumentation
 import NIOHTTP1
 
-extension HTTPHeaders: CarrierProtocol {}
-
 public struct HTTPHeadersExtractor: ExtractorProtocol {
     public init() {}
 
