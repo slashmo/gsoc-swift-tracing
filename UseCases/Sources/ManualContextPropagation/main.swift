@@ -18,13 +18,13 @@ server.receive(FakeHTTPRequest(path: "/", headers: []))
 
 typealias HTTPHeaders = [(String, String)]
 
-final class HTTPHeadersExtractor: ExtractorProtocol {
+struct HTTPHeadersExtractor: ExtractorProtocol {
     func extract(key: String, from headers: HTTPHeaders) -> String? {
         headers.first(where: { $0.0 == key })?.1
     }
 }
 
-final class HTTPHeadersInjector: InjectorProtocol {
+struct HTTPHeadersInjector: InjectorProtocol {
     func inject(_ value: String, forKey key: String, into headers: inout HTTPHeaders) {
         headers.append((key, value))
     }
