@@ -3,7 +3,7 @@ import NIOHTTP1
 
 extension HTTPHeaders: CarrierProtocol {}
 
-public final class HTTPHeadersExtractor: ExtractorProtocol {
+public struct HTTPHeadersExtractor: ExtractorProtocol {
     public init() {}
 
     public func extract(key: String, from headers: HTTPHeaders) -> String? {
@@ -11,7 +11,7 @@ public final class HTTPHeadersExtractor: ExtractorProtocol {
     }
 }
 
-public final class HTTPHeadersInjector: InjectorProtocol {
+public struct HTTPHeadersInjector: InjectorProtocol {
     public init() {}
 
     public func inject(_ value: String, forKey key: String, into headers: inout HTTPHeaders) {
