@@ -16,7 +16,8 @@ public struct MultiplexInstrument {
 
 extension MultiplexInstrument: Instrument {
     public func inject<Carrier, Injector>(
-        _ baggage: BaggageContext, into carrier: inout Carrier, using injector: Injector)
+        _ baggage: BaggageContext, into carrier: inout Carrier, using injector: Injector
+    )
         where
         Injector: InjectorProtocol,
         Carrier == Injector.Carrier {
@@ -24,10 +25,11 @@ extension MultiplexInstrument: Instrument {
     }
 
     public func extract<Carrier, Extractor>(
-        _ carrier: Carrier, into baggage: inout BaggageContext, using extractor: Extractor)
+        _ carrier: Carrier, into baggage: inout BaggageContext, using extractor: Extractor
+    )
         where
         Carrier == Extractor.Carrier,
-        Extractor : ExtractorProtocol {
+        Extractor: ExtractorProtocol {
         self.instruments.forEach { $0.extract(carrier, into: &baggage, using: extractor) }
     }
 }

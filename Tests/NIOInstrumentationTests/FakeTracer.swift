@@ -12,7 +12,8 @@ final class FakeTracer: Instrument {
     static let defaultTraceID = UUID().uuidString
 
     func inject<Carrier, Injector>(
-        _ baggage: BaggageContext, into carrier: inout Carrier, using injector: Injector)
+        _ baggage: BaggageContext, into carrier: inout Carrier, using injector: Injector
+    )
         where
         Injector: InjectorProtocol,
         Carrier == Injector.Carrier {
@@ -21,7 +22,8 @@ final class FakeTracer: Instrument {
     }
 
     func extract<Carrier, Extractor>(
-        _ carrier: Carrier, into baggage: inout BaggageContext, using extractor: Extractor)
+        _ carrier: Carrier, into baggage: inout BaggageContext, using extractor: Extractor
+    )
         where
         Extractor: ExtractorProtocol,
         Carrier == Extractor.Carrier {

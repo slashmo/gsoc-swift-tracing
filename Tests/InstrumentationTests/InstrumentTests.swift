@@ -6,7 +6,7 @@ final class InstrumentTests: XCTestCase {
     func testMultiplexInvokesAllInstruments() {
         let instrument = MultiplexInstrument([
             FirstFakeTracer(),
-            SecondFakeTracer()
+            SecondFakeTracer(),
         ])
 
         var baggage = BaggageContext()
@@ -51,7 +51,8 @@ private final class FirstFakeTracer: Instrument {
     static let defaultTraceID = UUID().uuidString
 
     func inject<Carrier, Injector>(
-        _ baggage: BaggageContext, into carrier: inout Carrier, using injector: Injector)
+        _ baggage: BaggageContext, into carrier: inout Carrier, using injector: Injector
+    )
         where
         Injector: InjectorProtocol,
         Carrier == Injector.Carrier {
@@ -60,7 +61,8 @@ private final class FirstFakeTracer: Instrument {
     }
 
     func extract<Carrier, Extractor>(
-        _ carrier: Carrier, into baggage: inout BaggageContext, using extractor: Extractor)
+        _ carrier: Carrier, into baggage: inout BaggageContext, using extractor: Extractor
+    )
         where
         Extractor: ExtractorProtocol,
         Carrier == Extractor.Carrier {
@@ -80,7 +82,8 @@ private final class SecondFakeTracer: Instrument {
     static let defaultTraceID = UUID().uuidString
 
     func inject<Carrier, Injector>(
-        _ baggage: BaggageContext, into carrier: inout Carrier, using injector: Injector)
+        _ baggage: BaggageContext, into carrier: inout Carrier, using injector: Injector
+    )
         where
         Injector: InjectorProtocol,
         Carrier == Injector.Carrier {
@@ -89,7 +92,8 @@ private final class SecondFakeTracer: Instrument {
     }
 
     func extract<Carrier, Extractor>(
-        _ carrier: Carrier, into baggage: inout BaggageContext, using extractor: Extractor)
+        _ carrier: Carrier, into baggage: inout BaggageContext, using extractor: Extractor
+    )
         where
         Extractor: ExtractorProtocol,
         Carrier == Extractor.Carrier {
