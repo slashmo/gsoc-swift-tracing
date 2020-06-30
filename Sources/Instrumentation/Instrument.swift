@@ -1,6 +1,6 @@
 import Baggage
 
-/// Conforming types are used to extract values from a specific `CarrierProtocol`.
+/// Conforming types are used to extract values from a specific `Carrier`.
 public protocol ExtractorProtocol {
     /// The carrier to extract values from.
     associatedtype Carrier
@@ -13,7 +13,7 @@ public protocol ExtractorProtocol {
     func extract(key: String, from carrier: Carrier) -> String?
 }
 
-/// Conforming types are used to inject values into a specific `CarrierProtocol`.
+/// Conforming types are used to inject values into a specific `Carrier`.
 public protocol InjectorProtocol {
     /// The carrier to inject values into.
     associatedtype Carrier

@@ -26,13 +26,13 @@ final class InstrumentTests: XCTestCase {
     }
 }
 
-private final class DictionaryInjector: InjectorProtocol {
+private struct DictionaryInjector: InjectorProtocol {
     func inject(_ value: String, forKey key: String, into dictionary: inout [String: String]) {
         dictionary[key] = value
     }
 }
 
-private final class DictionaryExtractor: ExtractorProtocol {
+private struct DictionaryExtractor: ExtractorProtocol {
     func extract(key: String, from dictionary: [String: String]) -> String? {
         dictionary[key]
     }
