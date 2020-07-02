@@ -16,7 +16,7 @@
 ##
 ## This source file is part of the SwiftNIO open source project
 ##
-## Copyright (c) 2019 Apple Inc. and the SwiftNIO project authors
+## Copyright (c) 2017-2019 Apple Inc. and the SwiftNIO project authors
 ## Licensed under Apache License v2.0
 ##
 ## See LICENSE.txt for license information
@@ -26,35 +26,17 @@
 ##
 ##===----------------------------------------------------------------------===##
 
-set -eu
-here="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-tmp_dir="/tmp"
-
-while getopts "t:" opt; do
-    case "$opt" in
-        t)
-            tmp_dir="$OPTARG"
-            ;;
-        *)
-            exit 1
-            ;;
-    esac
-done
-
-shift $((OPTIND-1))
-
-tests_to_run=("$here"/test_*.swift)
-
-if [[ $# -gt 0 ]]; then
-    tests_to_run=("$@")
+printf "=> Checking for unacceptable language... "
+# This greps for unacceptable terminology. The square bracket[s] are so that
+# "git grep" doesn't find the lines that greps :).
+unacceptable_terms=(
+  -e blacklis[t]
+  -e whitelis[t]
+  -e slav[e]
+)
+if git grep --color=never -i "${unacceptable_terms[@]}" > /dev/null; then
+  printf "\033[0;31mUnacceptable language found.\033[0m\n"
+  git grep -i "${unacceptable_terms[@]}"
+  exit 1
 fi
-
-"$here/../../allocation-counter-tests-framework/run-allocation-counter.sh" \
-    -p "$here/../../.." \
-    -m Baggage \
-    -m Instrumentation \
-    -m NIOInstrumentation \
-    -s "$here/shared.swift" \
-    -t "$tmp_dir" \
-    "${tests_to_run[@]}"
+printf "\033[0;32mokay.\033[0m\n"
