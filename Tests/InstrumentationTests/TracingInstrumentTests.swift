@@ -21,7 +21,7 @@ final class TracingInstrumentTests: XCTestCase {
         let httpServer = FakeHTTPServer(instrument: JaegerTracer()) { baggage, _, client -> FakeHTTPResponse in
             baggage.logger.info("Make subsequent HTTP request")
             client.performRequest(baggage, request: FakeHTTPRequest(path: "/test", headers: []))
-            return FakeHTTPResponse(status: 200)
+            return FakeHTTPResponse(status: 418)
         }
 
         httpServer.receive(FakeHTTPRequest(path: "/", headers: []))
@@ -36,6 +36,7 @@ final class JaegerTracer: TracingInstrument {
     func startSpan(named operationName: String, baggage: BaggageContext, at timestamp: DispatchTime) -> Span {
         let span = OTSpan(operationName: operationName, startTimestamp: timestamp, baggage: baggage) { span in
             span.baggage.logger.info(#"Emitting span "\#(span.operationName)" to backend"#)
+            span.baggage.logger.info("\(span.attributes)")
         }
         currentSpan = span
         return span
@@ -91,6 +92,7 @@ struct OTSpan: Span {
     let baggage: BaggageContext
 
     private(set) var events = [SpanEvent]()
+    private(set) var attributes = [String: SpanAttribute]()
 
     let onEnd: (Span) -> Void
 
@@ -108,6 +110,14 @@ struct OTSpan: Span {
 
     mutating func addEvent(_ event: SpanEvent) {
         self.events.append(event)
+    }
+
+    subscript(attributeName attributeName: String) -> SpanAttribute? {
+        get {
+            self.attributes[attributeName]
+        } set {
+            self.attributes[attributeName] = newValue
+        }
     }
 
     mutating func end(at timestamp: DispatchTime) {
@@ -165,7 +175,7 @@ struct FakeHTTPServer {
 
         let response = self.catchAllHandler(span.baggage, request, self.client)
         span.baggage.logger.info("Handled HTTP request with status: \(response.status)")
-        // TODO: - Tag span with response status
+        span[attributeName: "http.status"] = .int(response.status)
 
         span.end()
     }

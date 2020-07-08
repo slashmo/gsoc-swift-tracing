@@ -25,6 +25,9 @@ public protocol Span {
     var events: [SpanEvent] { get }
     mutating func addEvent(_ event: SpanEvent)
 
+    var attributes: [String: SpanAttribute] { get }
+    subscript(attributeName attributeName: String) -> SpanAttribute? { get set }
+
     var onEnd: (Span) -> Void { get }
     mutating func end(at timestamp: DispatchTime)
 }
@@ -48,5 +51,44 @@ public struct SpanEvent {
     public init(name: String, at timestamp: DispatchTime = .now()) {
         self.name = name
         self.timestamp = timestamp
+    }
+}
+
+public enum SpanAttribute {
+    case string(String)
+    case int(Int)
+    case double(Double)
+    case bool(Bool)
+    case array([SpanAttribute])
+    case any(CustomStringConvertible)
+}
+
+extension SpanAttribute: ExpressibleByStringLiteral {
+    public init(stringLiteral value: String) {
+        self = .string(value)
+    }
+}
+
+extension SpanAttribute: ExpressibleByIntegerLiteral {
+    public init(integerLiteral value: Int) {
+        self = .int(value)
+    }
+}
+
+extension SpanAttribute: ExpressibleByArrayLiteral {
+    public init(arrayLiteral attributes: SpanAttribute...) {
+        self = .array(attributes)
+    }
+}
+
+extension SpanAttribute: ExpressibleByFloatLiteral {
+    public init(floatLiteral value: Double) {
+        self = .double(value)
+    }
+}
+
+extension SpanAttribute: ExpressibleByBooleanLiteral {
+    public init(booleanLiteral value: Bool) {
+        self = .bool(value)
     }
 }
