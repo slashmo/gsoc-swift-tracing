@@ -15,29 +15,31 @@ import Baggage
 import Dispatch
 
 public protocol TracingInstrument: Instrument {
-    func startSpan(named operationName: String, setupBaggage: (inout BaggageContext) -> Void) -> Span
+    var currentSpan: Span? { get }
+
+    func startSpan(named operationName: String, baggage: BaggageContext, at timestamp: DispatchTime) -> Span
 }
 
-public struct Span {
-    public let operationName: String
-    public let startTimestamp: DispatchTime
-    public let baggage: BaggageContext
-
-    private var onFinish: (Span) -> Void
-
-    public func finish() {
-        self.onFinish(self)
+extension TracingInstrument {
+    public func startSpan(named operationName: String, baggage: BaggageContext) -> Span {
+        self.startSpan(named: operationName, baggage: baggage, at: .now())
     }
+}
 
-    public init(
-        operationName: String,
-        startingAt startTimestamp: DispatchTime,
-        baggage: BaggageContext,
-        onFinish: @escaping (Span) -> Void
-    ) {
-        self.operationName = operationName
-        self.startTimestamp = startTimestamp
-        self.baggage = baggage
-        self.onFinish = onFinish
+public protocol Span {
+    var operationName: String { get }
+
+    var startTimestamp: DispatchTime { get }
+    var endTimestamp: DispatchTime? { get }
+
+    var baggage: BaggageContext { get }
+
+    var onEnd: (Span) -> Void { get }
+    func end(at timestamp: DispatchTime)
+}
+
+extension Span {
+    public func end() {
+        self.end(at: .now())
     }
 }

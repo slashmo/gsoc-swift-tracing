@@ -31,12 +31,14 @@ final class TracingInstrumentTests: XCTestCase {
 // MARK: - JaegerTracer
 
 final class JaegerTracer: TracingInstrument {
-    func startSpan(named operationName: String, setupBaggage: (inout BaggageContext) -> Void) -> Span {
-        var baggage = BaggageContext()
-        setupBaggage(&baggage)
-        return Span(operationName: operationName, startingAt: .now(), baggage: baggage) { span in
+    private(set) var currentSpan: Span?
+
+    func startSpan(named operationName: String, baggage: BaggageContext, at timestamp: DispatchTime) -> Span {
+        let span = OTSpan(operationName: operationName, startTimestamp: timestamp, baggage: baggage) { span in
             span.baggage.logger.info(#"Emitting span "\#(span.operationName)" to backend"#)
         }
+        currentSpan = span
+        return span
     }
 
     func extract<Carrier, Extractor>(
@@ -75,6 +77,36 @@ extension JaegerTracer {
 
     enum TraceParentKey: BaggageContextKey {
         typealias Value = TraceParent
+    }
+}
+
+// MARK: - OTSpan
+
+final class OTSpan: Span {
+    let operationName: String
+
+    let startTimestamp: DispatchTime
+    var endTimestamp: DispatchTime?
+
+    let baggage: BaggageContext
+
+    let onEnd: (Span) -> Void
+
+    init(
+        operationName: String,
+        startTimestamp: DispatchTime,
+        baggage: BaggageContext,
+        onEnd: @escaping (Span) -> Void
+    ) {
+        self.operationName = operationName
+        self.startTimestamp = startTimestamp
+        self.baggage = baggage
+        self.onEnd = onEnd
+    }
+
+    func end(at timestamp: DispatchTime) {
+        self.endTimestamp = timestamp
+        self.onEnd(self)
     }
 }
 
@@ -120,16 +152,16 @@ struct FakeHTTPServer {
         // TODO: - Consider a nicer way to access a certain instrument
         let tracer = self.instrument as! TracingInstrument
 
-        // TODO: - Due to trailing closure looks like everything inside the span should go into the closure.
-        let span = tracer.startSpan(named: "GET \(request.path)") { baggage in
-            self.instrument.extract(request.headers, into: &baggage, using: HTTPHeadersExtractor())
-        }
+        var baggage = BaggageContext()
+        self.instrument.extract(request.headers, into: &baggage, using: HTTPHeadersExtractor())
+
+        let span = tracer.startSpan(named: "GET \(request.path)", baggage: baggage)
 
         let response = self.catchAllHandler(span.baggage, request, self.client)
         span.baggage.logger.info("Handled HTTP request with status: \(response.status)")
         // TODO: - Tag span with response status
 
-        span.finish()
+        span.end()
     }
 }
 
