@@ -82,7 +82,7 @@ extension JaegerTracer {
 
 // MARK: - OTSpan
 
-final class OTSpan: Span {
+struct OTSpan: Span {
     let operationName: String
 
     let startTimestamp: DispatchTime
@@ -90,7 +90,7 @@ final class OTSpan: Span {
 
     let baggage: BaggageContext
 
-    private(set) var events = [Event]()
+    private(set) var events = [SpanEvent]()
 
     let onEnd: (Span) -> Void
 
@@ -106,12 +106,11 @@ final class OTSpan: Span {
         self.onEnd = onEnd
     }
 
-    func addEvent(_ event: Event) -> Self {
+    mutating func addEvent(_ event: SpanEvent) {
         self.events.append(event)
-        return self
     }
 
-    func end(at timestamp: DispatchTime) {
+    mutating func end(at timestamp: DispatchTime) {
         self.endTimestamp = timestamp
         self.onEnd(self)
     }
@@ -162,7 +161,7 @@ struct FakeHTTPServer {
         var baggage = BaggageContext()
         self.instrument.extract(request.headers, into: &baggage, using: HTTPHeadersExtractor())
 
-        let span = tracer.startSpan(named: "GET \(request.path)", baggage: baggage)
+        var span = tracer.startSpan(named: "GET \(request.path)", baggage: baggage)
 
         let response = self.catchAllHandler(span.baggage, request, self.client)
         span.baggage.logger.info("Handled HTTP request with status: \(response.status)")

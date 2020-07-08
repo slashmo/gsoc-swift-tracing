@@ -22,20 +22,26 @@ public protocol Span {
 
     var baggage: BaggageContext { get }
 
-    var events: [Event] { get }
-    func addEvent(_ event: Event) -> Self
+    var events: [SpanEvent] { get }
+    mutating func addEvent(_ event: SpanEvent)
 
     var onEnd: (Span) -> Void { get }
-    func end(at timestamp: DispatchTime)
+    mutating func end(at timestamp: DispatchTime)
 }
 
 extension Span {
-    public func end() {
+    public func addingEvent(_ event: SpanEvent) -> Self {
+        var copy = self
+        copy.addEvent(event)
+        return copy
+    }
+
+    public mutating func end() {
         self.end(at: .now())
     }
 }
 
-public struct Event {
+public struct SpanEvent {
     public let name: String
     public let timestamp: DispatchTime
 
