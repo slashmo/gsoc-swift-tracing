@@ -86,9 +86,11 @@ final class OTSpan: Span {
     let operationName: String
 
     let startTimestamp: DispatchTime
-    var endTimestamp: DispatchTime?
+    private(set) var endTimestamp: DispatchTime?
 
     let baggage: BaggageContext
+
+    private(set) var events = [Event]()
 
     let onEnd: (Span) -> Void
 
@@ -102,6 +104,11 @@ final class OTSpan: Span {
         self.startTimestamp = startTimestamp
         self.baggage = baggage
         self.onEnd = onEnd
+    }
+
+    func addEvent(_ event: Event) -> Self {
+        self.events.append(event)
+        return self
     }
 
     func end(at timestamp: DispatchTime) {

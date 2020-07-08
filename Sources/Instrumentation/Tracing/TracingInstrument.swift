@@ -25,21 +25,3 @@ extension TracingInstrument {
         self.startSpan(named: operationName, baggage: baggage, at: .now())
     }
 }
-
-public protocol Span {
-    var operationName: String { get }
-
-    var startTimestamp: DispatchTime { get }
-    var endTimestamp: DispatchTime? { get }
-
-    var baggage: BaggageContext { get }
-
-    var onEnd: (Span) -> Void { get }
-    func end(at timestamp: DispatchTime)
-}
-
-extension Span {
-    public func end() {
-        self.end(at: .now())
-    }
-}
