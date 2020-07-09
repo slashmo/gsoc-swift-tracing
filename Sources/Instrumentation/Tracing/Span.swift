@@ -54,6 +54,12 @@ public struct SpanEvent {
     }
 }
 
+extension SpanEvent: ExpressibleByStringLiteral {
+    public init(stringLiteral name: String) {
+        self.init(name: name)
+    }
+}
+
 // ==== ----------------------------------------------------------------------------------------------------------------
 // MARK: Span Attribute
 public enum SpanAttribute {
