@@ -44,12 +44,20 @@ extension Span {
     }
 }
 
+// ==== ----------------------------------------------------------------------------------------------------------------
+// MARK: Span Event
+
 public struct SpanEvent {
     public let name: String
+
+    /// One or more Attributes with the same restrictions as defined for Span Attributes.
+    public let attributes: [String: SpanAttribute]
+
     public let timestamp: DispatchTime
 
-    public init(name: String, at timestamp: DispatchTime = .now()) {
+    public init(name: String, attributes: [String: SpanAttribute] = [:], at timestamp: DispatchTime = .now()) {
         self.name = name
+        self.attributes = attributes
         self.timestamp = timestamp
     }
 }
