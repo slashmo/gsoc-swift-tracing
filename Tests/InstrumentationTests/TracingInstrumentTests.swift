@@ -34,8 +34,8 @@ final class TracingInstrumentTests: XCTestCase {
 final class JaegerTracer: TracingInstrument {
     private(set) var currentSpan: Span?
 
-    func startSpan(named operationName: String, baggage: BaggageContext, at timestamp: DispatchTime?) -> Span {
-        let span = OTSpan(operationName: operationName, startTimestamp: timestamp ?? .now(), baggage: baggage) { span in
+    func startSpan(named operationName: String, context: BaggageContext, at timestamp: DispatchTime?) -> Span {
+        let span = OTSpan(operationName: operationName, startTimestamp: timestamp ?? .now(), context: context) { span in
             span.baggage.logger.info(#"Emitting span "\#(span.operationName)" to backend"#)
             span.baggage.logger.info("\(span.attributes)")
         }
@@ -100,7 +100,7 @@ struct OTSpan: Span {
     init(
         operationName: String,
         startTimestamp: DispatchTime,
-        baggage: BaggageContext,
+        context baggage: BaggageContext,
         onEnd: @escaping (Span) -> Void
     ) {
         self.operationName = operationName
@@ -169,10 +169,10 @@ struct FakeHTTPServer {
         // TODO: - Consider a nicer way to access a certain instrument
         let tracer = self.instrument as! TracingInstrument
 
-        var baggage = BaggageContext()
-        self.instrument.extract(request.headers, into: &baggage, using: HTTPHeadersExtractor())
+        var context = BaggageContext()
+        self.instrument.extract(request.headers, into: &context, using: HTTPHeadersExtractor())
 
-        var span = tracer.startSpan(named: "GET \(request.path)", baggage: baggage)
+        var span = tracer.startSpan(named: "GET \(request.path)", context: context)
 
         let response = self.catchAllHandler(span.baggage, request, self.client)
         span.baggage.logger.info("Handled HTTP request with status: \(response.status)")
