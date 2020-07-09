@@ -53,7 +53,8 @@ public struct SpanEvent {
         self.timestamp = timestamp
     }
 }
-
+// ==== ----------------------------------------------------------------------------------------------------------------
+// MARK: Span Attribute
 public enum SpanAttribute {
     case string(String)
     case int(Int)
