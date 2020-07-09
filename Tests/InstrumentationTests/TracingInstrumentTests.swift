@@ -13,6 +13,7 @@
 
 import Baggage
 import BaggageLogging
+import Dispatch
 import Instrumentation
 import XCTest
 
@@ -33,8 +34,8 @@ final class TracingInstrumentTests: XCTestCase {
 final class JaegerTracer: TracingInstrument {
     private(set) var currentSpan: Span?
 
-    func startSpan(named operationName: String, baggage: BaggageContext, at timestamp: DispatchTime) -> Span {
-        let span = OTSpan(operationName: operationName, startTimestamp: timestamp, baggage: baggage) { span in
+    func startSpan(named operationName: String, baggage: BaggageContext, at timestamp: DispatchTime?) -> Span {
+        let span = OTSpan(operationName: operationName, startTimestamp: timestamp ?? .now(), baggage: baggage) { span in
             span.baggage.logger.info(#"Emitting span "\#(span.operationName)" to backend"#)
             span.baggage.logger.info("\(span.attributes)")
         }

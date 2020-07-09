@@ -17,11 +17,11 @@ import Dispatch
 public protocol TracingInstrument: Instrument {
     var currentSpan: Span? { get }
 
-    func startSpan(named operationName: String, baggage: BaggageContext, at timestamp: DispatchTime) -> Span
+    func startSpan(named operationName: String, baggage: BaggageContext, at timestamp: DispatchTime?) -> Span
 }
 
 extension TracingInstrument {
     public func startSpan(named operationName: String, baggage: BaggageContext) -> Span {
-        self.startSpan(named: operationName, baggage: baggage, at: .now())
+        self.startSpan(named: operationName, baggage: baggage, at: nil)
     }
 }
