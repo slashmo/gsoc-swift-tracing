@@ -70,11 +70,14 @@ extension SpanEvent: ExpressibleByStringLiteral {
 
 // ==== ----------------------------------------------------------------------------------------------------------------
 // MARK: Span Attribute
+
 public enum SpanAttribute {
     case string(String)
     case int(Int)
     case double(Double)
     case bool(Bool)
+    // TODO: This could be misused to create a heterogenuous array of attributes, which is not allowed in OT:
+    // https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/api.md#set-attributes
     case array([SpanAttribute])
     case stringConvertible(CustomStringConvertible)
 }
@@ -91,12 +94,6 @@ extension SpanAttribute: ExpressibleByIntegerLiteral {
     }
 }
 
-extension SpanAttribute: ExpressibleByArrayLiteral {
-    public init(arrayLiteral attributes: SpanAttribute...) {
-        self = .array(attributes)
-    }
-}
-
 extension SpanAttribute: ExpressibleByFloatLiteral {
     public init(floatLiteral value: Double) {
         self = .double(value)
@@ -106,5 +103,11 @@ extension SpanAttribute: ExpressibleByFloatLiteral {
 extension SpanAttribute: ExpressibleByBooleanLiteral {
     public init(booleanLiteral value: Bool) {
         self = .bool(value)
+    }
+}
+
+extension SpanAttribute: ExpressibleByArrayLiteral {
+    public init(arrayLiteral attributes: SpanAttribute...) {
+        self = .array(attributes)
     }
 }
