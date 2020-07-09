@@ -28,7 +28,6 @@ public protocol Span {
     var attributes: [String: SpanAttribute] { get }
     subscript(attributeName attributeName: String) -> SpanAttribute? { get set }
 
-    var onEnd: (Span) -> Void { get }
     // TODO: naming is defined in the spec, but we may want to consider finish instead as it sounds more like a verb
     mutating func end(at timestamp: DispatchTime)
 }
