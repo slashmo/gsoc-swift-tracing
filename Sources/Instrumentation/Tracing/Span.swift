@@ -53,6 +53,7 @@ public struct SpanEvent {
         self.timestamp = timestamp
     }
 }
+
 // ==== ----------------------------------------------------------------------------------------------------------------
 // MARK: Span Attribute
 public enum SpanAttribute {
@@ -61,7 +62,7 @@ public enum SpanAttribute {
     case double(Double)
     case bool(Bool)
     case array([SpanAttribute])
-        case stringConvertible(CustomStringConvertible)
+    case stringConvertible(CustomStringConvertible)
 }
 
 extension SpanAttribute: ExpressibleByStringLiteral {
