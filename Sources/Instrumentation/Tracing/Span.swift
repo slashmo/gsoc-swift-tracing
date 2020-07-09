@@ -60,7 +60,7 @@ public enum SpanAttribute {
     case double(Double)
     case bool(Bool)
     case array([SpanAttribute])
-    case any(CustomStringConvertible)
+        case stringConvertible(CustomStringConvertible)
 }
 
 extension SpanAttribute: ExpressibleByStringLiteral {
