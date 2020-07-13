@@ -52,6 +52,9 @@ public protocol Span {
     /// - Returns:The `SpanAttribute` identified by the given name, or `nil` if it's not present.
     subscript(attributeName attributeName: String) -> SpanAttribute? { get set }
 
+    /// Returns true if this `Span` is recording information like events, attributes, status, etc.
+    var isRecording: Bool { get }
+
     // TODO: naming is defined in the spec, but we may want to consider finish instead as it sounds more like a verb
 
     /// End this `Span` at the given timestamp.

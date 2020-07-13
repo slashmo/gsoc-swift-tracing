@@ -77,8 +77,23 @@ private final class TracedLockPrintlnTracer: TracingInstrument {
 
         let baggage: BaggageContext
 
-        private(set) var events = [SpanEvent]()
-        private(set) var attributes = [String: SpanAttribute]()
+        private(set) var events = [SpanEvent]() {
+            didSet {
+                if !self.events.isEmpty {
+                    self.isRecording = true
+                }
+            }
+        }
+
+        private(set) var attributes = [String: SpanAttribute]() {
+            didSet {
+                if !self.attributes.isEmpty {
+                    self.isRecording = true
+                }
+            }
+        }
+
+        private(set) var isRecording = false
 
         init(
             operationName: String,

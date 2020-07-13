@@ -64,11 +64,7 @@ public struct NoOpTracingInstrument: TracingInstrument {
             }
         }
 
-        public var onEnd: (Span) -> Void {
-            { _ in
-                ()
-            }
-        }
+        public let isRecording = false
 
         public mutating func end(at timestamp: DispatchTime) {
             // ignore

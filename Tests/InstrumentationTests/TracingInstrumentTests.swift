@@ -92,8 +92,23 @@ struct OTSpan: Span {
 
     let baggage: BaggageContext
 
-    private(set) var events = [SpanEvent]()
-    private(set) var attributes = [String: SpanAttribute]()
+    private(set) var events = [SpanEvent]() {
+        didSet {
+            if !self.attributes.isEmpty {
+                self.isRecording = true
+            }
+        }
+    }
+
+    private(set) var attributes = [String: SpanAttribute]() {
+        didSet {
+            if !self.attributes.isEmpty {
+                self.isRecording = true
+            }
+        }
+    }
+
+    private(set) var isRecording = false
 
     let onEnd: (Span) -> Void
 
@@ -111,6 +126,7 @@ struct OTSpan: Span {
 
     mutating func addEvent(_ event: SpanEvent) {
         self.events.append(event)
+        self.isRecording = true
     }
 
     subscript(attributeName attributeName: String) -> SpanAttribute? {
