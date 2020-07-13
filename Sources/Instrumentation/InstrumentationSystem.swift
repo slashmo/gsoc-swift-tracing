@@ -20,7 +20,7 @@ import Baggage
 public enum InstrumentationSystem {
     private static let lock = ReadWriteLock()
     private static var _instrument: Instrument = NoOpInstrument()
-    private static var _tracer: TracingInstrument? = nil
+    private static var _tracer: TracingInstrument?
     private static var isInitialized = false
 
     /// Globally select the desired `Instrument` implementation.
@@ -54,7 +54,6 @@ public enum InstrumentationSystem {
         }
     }
 
-
     /// Returns the globally configured `Instrument`. Defaults to a no-op `Instrument` if `boostrap` wasn't called before.
     public static var instrument: Instrument {
         self.lock.withReaderLock { self._instrument }
@@ -64,7 +63,7 @@ public enum InstrumentationSystem {
     public static var tracer: TracingInstrument {
         self.lock.withReaderLock {
             let tracer: TracingInstrument? = self._tracer
-                let res: TracingInstrument =  tracer ?? NoOpTracingInstrument()
+            let res: TracingInstrument = tracer ?? NoOpTracingInstrument()
             return res
         }
     }

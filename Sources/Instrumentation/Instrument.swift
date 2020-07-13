@@ -68,7 +68,6 @@ public protocol Instrument {
 }
 
 public struct NoOpInstrument: Instrument {
-
     public func inject<Carrier, Injector>(_ baggage: BaggageContext, into carrier: inout Carrier, using injector: Injector)
         where
         Injector: InjectorProtocol,

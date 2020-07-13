@@ -22,12 +22,12 @@ final class TracedLockTests: XCTestCase {
         InstrumentationSystem.bootstrapInternal(tracer)
 
         let lock = TracedLock(name: "my-cool-lock")
-        
+
         func launchTask(_ name: String) {
             DispatchQueue.global().async {
                 var context = BaggageContext()
                 context[TaskIDKey.self] = name
-                
+
                 lock.lock(context: context)
                 lock.unlock(context: context)
             }
@@ -36,7 +36,7 @@ final class TracedLockTests: XCTestCase {
         launchTask("two")
         launchTask("three")
         launchTask("four")
-        
+
         Thread.sleep(forTimeInterval: 1)
     }
 }
@@ -53,7 +53,6 @@ enum TaskIDKey: BaggageContextKey {
 // MARK: PrintLn Tracer
 
 private final class TracedLockPrintlnTracer: TracingInstrument {
-
     var currentSpan: Span? // FIXME: likely not like that
 
     func startSpan(named operationName: String, context: BaggageContext, at timestamp: DispatchTime?) -> Span {

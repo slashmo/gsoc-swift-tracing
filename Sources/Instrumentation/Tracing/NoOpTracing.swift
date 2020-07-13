@@ -24,14 +24,12 @@ public struct NoOpTracingInstrument: TracingInstrument {
     public func inject<Carrier, Injector>(_ context: BaggageContext, into carrier: inout Carrier, using injector: Injector)
         where
         Injector: InjectorProtocol,
-        Carrier == Injector.Carrier {
-    }
+        Carrier == Injector.Carrier {}
 
     public func extract<Carrier, Extractor>(_ carrier: Carrier, into baggage: inout BaggageContext, using extractor: Extractor)
         where
         Extractor: ExtractorProtocol,
-        Carrier == Extractor.Carrier {
-    }
+        Carrier == Extractor.Carrier {}
 
     public struct NoOpSpan: Span {
         public var operationName: String = ""
@@ -39,6 +37,7 @@ public struct NoOpTracingInstrument: TracingInstrument {
         public var startTimestamp: DispatchTime {
             .now()
         }
+
         public var endTimestamp: DispatchTime? = nil
 
         public var baggage: BaggageContext {
@@ -49,12 +48,12 @@ public struct NoOpTracingInstrument: TracingInstrument {
             []
         }
 
-        public mutating func addEvent(_ event: SpanEvent) {
-        }
+        public mutating func addEvent(_ event: SpanEvent) {}
 
         public var attributes: [String: SpanAttribute] {
             [:]
         }
+
         public subscript(attributeName attributeName: String) -> SpanAttribute? {
             get {
                 nil
@@ -65,7 +64,7 @@ public struct NoOpTracingInstrument: TracingInstrument {
         }
 
         public var onEnd: (Span) -> Void {
-            { (span) in
+            { _ in
                 ()
             }
         }

@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Foundation
 import Baggage
+import Foundation
 import Instrumentation
 
 final class TracedLock {
