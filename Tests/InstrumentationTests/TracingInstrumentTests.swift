@@ -87,6 +87,12 @@ extension JaegerTracer {
 struct OTSpan: Span {
     let operationName: String
 
+    var status: SpanStatus? {
+        didSet {
+            self.isRecording = self.status != nil
+        }
+    }
+
     let startTimestamp: DispatchTime
     private(set) var endTimestamp: DispatchTime?
 
@@ -94,17 +100,13 @@ struct OTSpan: Span {
 
     private(set) var events = [SpanEvent]() {
         didSet {
-            if !self.attributes.isEmpty {
-                self.isRecording = true
-            }
+            self.isRecording = !self.events.isEmpty
         }
     }
 
     private(set) var attributes = [String: SpanAttribute]() {
         didSet {
-            if !self.attributes.isEmpty {
-                self.isRecording = true
-            }
+            self.isRecording = !self.attributes.isEmpty
         }
     }
 

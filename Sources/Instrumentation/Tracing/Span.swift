@@ -24,6 +24,9 @@ public protocol Span {
     /// [OpenTelemetry specification](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/api.md#span).
     var operationName: String { get }
 
+    /// The status of this span.
+    var status: SpanStatus? { get set }
+
     /// The precise `DispatchTime` of when the `Span` was started.
     var startTimestamp: DispatchTime { get }
 
@@ -156,5 +159,66 @@ extension SpanAttribute: ExpressibleByBooleanLiteral {
 extension SpanAttribute: ExpressibleByArrayLiteral {
     public init(arrayLiteral attributes: SpanAttribute...) {
         self = .array(attributes)
+    }
+}
+
+// ==== ----------------------------------------------------------------------------------------------------------------
+// MARK: Span Status
+
+/// Represents the status of a finished Span. It's composed of a canonical code in conjunction with an optional descriptive message.
+public struct SpanStatus {
+    public let cannonicalCode: CannonicalCode
+    public let message: String?
+
+    /// Create a new `SpanStatus`.
+    /// - Parameters:
+    ///   - cannonicalCode: The cannonical code of this `SpanStatus`.
+    ///   - message: The optional descriptive message of this `SpanStatus`. Defaults to nil.
+    public init(cannonicalCode: CannonicalCode, message: String? = nil) {
+        self.cannonicalCode = cannonicalCode
+        self.message = message
+    }
+
+    /// Represents the canonical set of status codes of a finished Span, following
+    /// the [Standard GRPC](https://github.com/grpc/grpc/blob/master/doc/statuscodes.md) codes:
+    public enum CannonicalCode {
+        /// The operation completed successfully.
+        case ok
+        /// The operation was cancelled (typically by the caller).
+        case cancelled
+        /// An unknown error.
+        case unknown
+        /// Client specified an invalid argument. Note that this differs from `.failedPrecondition`. `.invalidArgument` indicates arguments that
+        /// are problematic regardless of the state of the system.
+        case invalidArgument
+        /// Deadline expired before operation could complete. For operations that change the state of the system,
+        /// this error may be returned even if the operation has completed successfully.
+        case deadlineExceeded
+        /// Some requested entity (e.g., file or directory) was not found.
+        case notFound
+        /// Some entity that we attempted to create (e.g., file or directory) already exists.
+        case alreadyExists
+        /// The caller does not have permission to execute the specified operation.
+        /// `.permissionDenied` must not be used if the caller cannot be identified (use `.unauthenticated` instead for those errors).
+        case permissionDenied
+        /// Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system is out of space.
+        case resourceExhausted
+        /// Operation was rejected because the system is not in a state required for the operation's execution.
+        case failedPrecondition
+        /// The operation was aborted, typically due to a concurrency issue like sequencer check failures, transaction aborts, etc.
+        case aborted
+        /// Operation was attempted past the valid range. E.g., seeking or reading past end of file.
+        /// Unlike `.invalidArgument`, this error indicates a problem that may be fixed if the system state changes.
+        case outOfRange
+        /// Operation is not implemented or not supported/enabled in this service.
+        case unimplemented
+        /// Internal errors. Means some invariants expected by underlying system has been broken.
+        case `internal`
+        /// The service is currently unavailable. This is a most likely a transient condition and may be corrected by retrying with a backoff.
+        case unavailable
+        /// Unrecoverable data loss or corruption.
+        case dataLoss
+        /// The request does not have valid authentication credentials for the operation.
+        case unauthenticated
     }
 }

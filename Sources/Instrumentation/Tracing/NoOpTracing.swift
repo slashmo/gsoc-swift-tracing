@@ -34,6 +34,7 @@ public struct NoOpTracingInstrument: TracingInstrument {
 
     public struct NoOpSpan: Span {
         public var operationName: String = ""
+        public var status: SpanStatus?
 
         public var startTimestamp: DispatchTime {
             .now()
