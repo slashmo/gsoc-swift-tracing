@@ -128,7 +128,6 @@ struct OTSpan: Span {
 
     mutating func addEvent(_ event: SpanEvent) {
         self.events.append(event)
-        self.isRecording = true
     }
 
     subscript(attributeName attributeName: String) -> SpanAttribute? {
