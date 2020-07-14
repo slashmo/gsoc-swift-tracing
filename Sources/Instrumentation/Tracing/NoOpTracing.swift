@@ -55,7 +55,7 @@ public struct NoOpTracingInstrument: TracingInstrument {
         public var attributes: SpanAttributes {
             get {
                 [:]
-            } 
+            }
             set {
                 // ignore
             }

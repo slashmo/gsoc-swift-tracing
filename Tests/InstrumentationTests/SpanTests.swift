@@ -88,4 +88,31 @@ final class SpanTests: XCTestCase {
         }
         XCTAssertEqual(stringValue, "test")
     }
+
+    func testSpanAttributesProvideSubscriptAccess() {
+        var attributes: SpanAttributes = [:]
+        XCTAssert(attributes.isEmpty)
+
+        attributes["0"] = false
+        XCTAssertFalse(attributes.isEmpty)
+
+        guard case .bool(let flag) = attributes["0"], !flag else {
+            XCTFail("Expected subscript getter to return the bool attribute.")
+            return
+        }
+    }
+
+    func testSpanAttributesAreIteratable() {
+        let attributes: SpanAttributes = ["0": 0, "1": true, "2": "test"]
+
+        var dictionary = [String: SpanAttribute]()
+        attributes.forEach { name, attribute in
+            dictionary[name] = attribute
+        }
+
+        guard case .int = dictionary["0"], case .bool = dictionary["1"], case .string = dictionary["2"] else {
+            XCTFail("Expected all attributes to be copied to the dictionary.")
+            return
+        }
+    }
 }
