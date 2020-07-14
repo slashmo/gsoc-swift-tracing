@@ -58,7 +58,6 @@ public protocol Span {
     /// Returns true if this `Span` is recording information like events, attributes, status, etc.
     var isRecording: Bool { get }
 
-    // TODO: naming is defined in the spec, but we may want to consider finish instead as it sounds more like a verb
 
     /// End this `Span` at the given timestamp.
     /// - Parameter timestamp: The `DispatchTime` at which the span ended.
