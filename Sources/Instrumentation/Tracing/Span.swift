@@ -170,7 +170,7 @@ public struct SpanAttributes {
 
     /// Calls the given callback for each attribute stored in this collection.
     /// - Parameter callback: The function to call for each attribute.
-    public func forEachAttribute(_ callback: (String, SpanAttribute) -> Void) {
+    public func forEach(_ callback: (String, SpanAttribute) -> Void) {
         self._attributes.forEach { callback($0.key, $0.1) }
     }
 
