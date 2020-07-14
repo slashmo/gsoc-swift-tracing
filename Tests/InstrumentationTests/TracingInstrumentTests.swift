@@ -104,7 +104,7 @@ struct OTSpan: Span {
         }
     }
 
-    private(set) var attributes = [String: SpanAttribute]() {
+    var attributes: SpanAttributes = [:] {
         didSet {
             self.isRecording = !self.attributes.isEmpty
         }
@@ -128,14 +128,6 @@ struct OTSpan: Span {
 
     mutating func addEvent(_ event: SpanEvent) {
         self.events.append(event)
-    }
-
-    subscript(attributeName attributeName: String) -> SpanAttribute? {
-        get {
-            self.attributes[attributeName]
-        } set {
-            self.attributes[attributeName] = newValue
-        }
     }
 
     mutating func end(at timestamp: DispatchTime) {
@@ -193,7 +185,7 @@ struct FakeHTTPServer {
 
         let response = self.catchAllHandler(span.baggage, request, self.client)
         span.baggage.logger.info("Handled HTTP request with status: \(response.status)")
-        span[attributeName: "http.status"] = .int(response.status)
+        span.attributes["http.status"] = .int(response.status)
 
         span.end()
     }

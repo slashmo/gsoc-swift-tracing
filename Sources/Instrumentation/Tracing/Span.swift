@@ -48,16 +48,10 @@ public protocol Span {
     // TODO: Wrap in a struct to hide collection implementation details.
 
     /// The attributes describing this `Span`.
-    var attributes: [String: SpanAttribute] { get }
-
-    /// Accesses the `SpanAttribute` with the given name for reading and writing.
-    /// - Parameter attributeName: The name of the attribute used to identify the attribute.
-    /// - Returns:The `SpanAttribute` identified by the given name, or `nil` if it's not present.
-    subscript(attributeName attributeName: String) -> SpanAttribute? { get set }
+    var attributes: SpanAttributes { get set }
 
     /// Returns true if this `Span` is recording information like events, attributes, status, etc.
     var isRecording: Bool { get }
-
 
     /// End this `Span` at the given timestamp.
     /// - Parameter timestamp: The `DispatchTime` at which the span ended.
@@ -88,10 +82,8 @@ public struct SpanEvent {
     /// The human-readable name of this `SpanEvent`.
     public let name: String
 
-    // TODO: Same as for `Span.attributes`. Wrap in struct to hide implementation details.
-
     /// One or more `SpanAttribute`s with the same restrictions as defined for `Span` attributes.
-    public let attributes: [String: SpanAttribute]
+    public var attributes: SpanAttributes
 
     /// The `DispatchTime` at which this event occured.
     public let timestamp: DispatchTime
@@ -101,7 +93,7 @@ public struct SpanEvent {
     ///   - name: The human-readable name of this event.
     ///   - attributes: The `SpanAttributes` describing this event. Defaults to no attributes.
     ///   - timestamp: The `DispatchTime` at which this event occured. Defaults to `.now()`.
-    public init(name: String, attributes: [String: SpanAttribute] = [:], at timestamp: DispatchTime = .now()) {
+    public init(name: String, attributes: SpanAttributes = [:], at timestamp: DispatchTime = .now()) {
         self.name = name
         self.attributes = attributes
         self.timestamp = timestamp
@@ -158,6 +150,39 @@ extension SpanAttribute: ExpressibleByBooleanLiteral {
 extension SpanAttribute: ExpressibleByArrayLiteral {
     public init(arrayLiteral attributes: SpanAttribute...) {
         self = .array(attributes)
+    }
+}
+
+/// A collection of `SpanAttribute`s.
+public struct SpanAttributes {
+    private var _attributes = [String: SpanAttribute]()
+
+    /// Accesses the `SpanAttribute` with the given name for reading and writing.
+    /// - Parameter name: The name of the attribute used to identify the attribute.
+    /// - Returns:The `SpanAttribute` identified by the given name, or `nil` if it's not present.
+    public subscript(_ name: String) -> SpanAttribute? {
+        get {
+            self._attributes[name]
+        } set {
+            self._attributes[name] = newValue
+        }
+    }
+
+    /// Calls the given callback for each attribute stored in this collection.
+    /// - Parameter callback: The function to call for each attribute.
+    public func forEachAttribute(_ callback: (String, SpanAttribute) -> Void) {
+        self._attributes.forEach { callback($0.key, $0.1) }
+    }
+
+    /// Returns true if the collection contains no attributes.
+    public var isEmpty: Bool {
+        self._attributes.isEmpty
+    }
+}
+
+extension SpanAttributes: ExpressibleByDictionaryLiteral {
+    public init(dictionaryLiteral elements: (String, SpanAttribute)...) {
+        self._attributes = [String: SpanAttribute](uniqueKeysWithValues: elements)
     }
 }
 

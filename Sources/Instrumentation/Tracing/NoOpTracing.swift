@@ -52,15 +52,10 @@ public struct NoOpTracingInstrument: TracingInstrument {
 
         public mutating func addEvent(_ event: SpanEvent) {}
 
-        public var attributes: [String: SpanAttribute] {
-            [:]
-        }
-
-        public subscript(attributeName attributeName: String) -> SpanAttribute? {
+        public var attributes: SpanAttributes {
             get {
-                nil
-            }
-            set {
+                [:]
+            } set {
                 // ignore
             }
         }
