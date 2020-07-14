@@ -159,7 +159,7 @@ public struct SpanAttributes {
 
     /// Accesses the `SpanAttribute` with the given name for reading and writing.
     /// - Parameter name: The name of the attribute used to identify the attribute.
-    /// - Returns:The `SpanAttribute` identified by the given name, or `nil` if it's not present.
+    /// - Returns: The `SpanAttribute` identified by the given name, or `nil` if it's not present.
     public subscript(_ name: String) -> SpanAttribute? {
         get {
             self._attributes[name]
