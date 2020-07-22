@@ -101,10 +101,50 @@ private final class TracedLockPrintlnTracer: TracingInstrument {
             }
         }
 
-        var attributes: SpanAttributes = [:] {
+        private var attributes: SpanAttributes = [:] {
             didSet {
                 self.isRecording = !self.attributes.isEmpty
             }
+        }
+
+        public mutating func setAttribute(_ value: String, forKey key: String) {
+            self.attributes[key] = .string(value)
+        }
+
+        public mutating func setAttribute(_ value: [String], forKey key: String) {
+            self.attributes[key] = .array(value.map(SpanAttribute.string))
+        }
+
+        public mutating func setAttribute(_ value: Int, forKey key: String) {
+            self.attributes[key] = .int(value)
+        }
+
+        public mutating func setAttribute(_ value: [Int], forKey key: String) {
+            self.attributes[key] = .array(value.map(SpanAttribute.int))
+        }
+
+        public mutating func setAttribute(_ value: Double, forKey key: String) {
+            self.attributes[key] = .double(value)
+        }
+
+        public mutating func setAttribute(_ value: [Double], forKey key: String) {
+            self.attributes[key] = .array(value.map(SpanAttribute.double))
+        }
+
+        public mutating func setAttribute(_ value: Bool, forKey key: String) {
+            self.attributes[key] = .bool(value)
+        }
+
+        public mutating func setAttribute(_ value: [Bool], forKey key: String) {
+            self.attributes[key] = .array(value.map(SpanAttribute.bool))
+        }
+
+        public mutating func setAttribute(_ value: CustomStringConvertible, forKey key: String) {
+            self.attributes[key] = .stringConvertible(value)
+        }
+
+        public mutating func setAttribute(_ value: [CustomStringConvertible], forKey key: String) {
+            self.attributes[key] = .array(value.map(SpanAttribute.stringConvertible))
         }
 
         private(set) var isRecording = false

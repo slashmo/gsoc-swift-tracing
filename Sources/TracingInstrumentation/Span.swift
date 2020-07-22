@@ -42,8 +42,65 @@ public protocol Span {
     /// - Parameter event: The `SpanEvent` to add to this `Span`.
     mutating func addEvent(_ event: SpanEvent)
 
-    /// The attributes describing this `Span`.
-    var attributes: SpanAttributes { get set }
+    /// Set a `String` value for the given attribute key.
+    /// - Parameters:
+    ///   - value: The `String` value to set for the key.
+    ///   - key: The attribute key.
+    mutating func setAttribute(_ value: String, forKey key: String)
+
+    /// Set a `[String]`value for the given attribute key.
+    /// - Parameters:
+    ///   - value: The `[String]` value to set for the key.
+    ///   - key: The attribute key.
+    mutating func setAttribute(_ value: [String], forKey key: String)
+
+    /// Set a `Int` value for the given attribute key.
+    /// - Parameters:
+    ///   - value: The `Int` value to set for the key.
+    ///   - key: The attribute key.
+    mutating func setAttribute(_ value: Int, forKey key: String)
+
+    /// Set a `[Int]` value for the given attribute key.
+    /// - Parameters:
+    ///   - value: The `[Int]` value to set for the key.
+    ///   - key: The attribute key.
+    mutating func setAttribute(_ value: [Int], forKey key: String)
+
+    /// Set a `Double` value for the given attribute key.
+    /// - Parameters:
+    ///   - value: The `Double` value to set for the key.
+    ///   - key: The attribute key.
+    mutating func setAttribute(_ value: Double, forKey key: String)
+
+    /// Set a `[Double]` value for the given attribute key.
+    /// - Parameters:
+    ///   - value: The `[Double]` value to set for the key.
+    ///   - key: The attribute key.
+    mutating func setAttribute(_ value: [Double], forKey key: String)
+
+    /// Set a `Bool` value for the given attribute key.
+    /// - Parameters:
+    ///   - value: The `Bool` value to set for the key.
+    ///   - key: The attribute key.
+    mutating func setAttribute(_ value: Bool, forKey key: String)
+
+    /// Set a `[Bool]` value for the given attribute key.
+    /// - Parameters:
+    ///   - value: The `[Bool]` value to set for the key.
+    ///   - key: The attribute key.
+    mutating func setAttribute(_ value: [Bool], forKey key: String)
+
+    /// Set a `CustomStringConvertible` value for the given attribute key.
+    /// - Parameters:
+    ///   - value: The `CustomStringConvertible` value to set for the key.
+    ///   - key: The attribute key.
+    mutating func setAttribute(_ value: CustomStringConvertible, forKey key: String)
+
+    /// Set a `[CustomStringConvertible]` value for the given attribute key.
+    /// - Parameters:
+    ///   - value: The `[CustomStringConvertible]` value to set for the key.
+    ///   - key: The attribute key.
+    mutating func setAttribute(_ value: [CustomStringConvertible], forKey key: String)
 
     /// Returns true if this `Span` is recording information like events, attributes, status, etc.
     var isRecording: Bool { get }

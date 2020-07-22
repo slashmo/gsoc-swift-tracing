@@ -54,14 +54,16 @@ public struct NoOpTracingInstrument: TracingInstrument {
 
         public mutating func addEvent(_ event: SpanEvent) {}
 
-        public var attributes: SpanAttributes {
-            get {
-                [:]
-            }
-            set {
-                // ignore
-            }
-        }
+        public mutating func setAttribute(_ value: String, forKey key: String) {}
+        public mutating func setAttribute(_ value: [String], forKey key: String) {}
+        public mutating func setAttribute(_ value: Int, forKey key: String) {}
+        public mutating func setAttribute(_ value: [Int], forKey key: String) {}
+        public mutating func setAttribute(_ value: Double, forKey key: String) {}
+        public mutating func setAttribute(_ value: [Double], forKey key: String) {}
+        public mutating func setAttribute(_ value: Bool, forKey key: String) {}
+        public mutating func setAttribute(_ value: [Bool], forKey key: String) {}
+        public mutating func setAttribute(_ value: CustomStringConvertible, forKey key: String) {}
+        public mutating func setAttribute(_ value: [CustomStringConvertible], forKey key: String) {}
 
         public let isRecording = false
 

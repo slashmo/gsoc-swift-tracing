@@ -67,7 +67,6 @@ final class JaegerTracer: TracingInstrument {
             kind: kind
         ) { span in
             span.baggage.logger.info(#"Emitting span "\#(span.operationName)" to backend"#)
-            span.baggage.logger.info("\(span.attributes)")
         }
         return span
     }
@@ -136,10 +135,50 @@ struct OTSpan: Span {
 
     private var links = [SpanLink]()
 
-    var attributes: SpanAttributes = [:] {
+    private var attributes: SpanAttributes = [:] {
         didSet {
             self.isRecording = !self.attributes.isEmpty
         }
+    }
+
+    mutating func setAttribute(_ value: String, forKey key: String) {
+        self.attributes[key] = .string(value)
+    }
+
+    mutating func setAttribute(_ value: [String], forKey key: String) {
+        self.attributes[key] = .array(value.map(SpanAttribute.string))
+    }
+
+    mutating func setAttribute(_ value: Int, forKey key: String) {
+        self.attributes[key] = .int(value)
+    }
+
+    mutating func setAttribute(_ value: [Int], forKey key: String) {
+        self.attributes[key] = .array(value.map(SpanAttribute.int))
+    }
+
+    mutating func setAttribute(_ value: Double, forKey key: String) {
+        self.attributes[key] = .double(value)
+    }
+
+    mutating func setAttribute(_ value: [Double], forKey key: String) {
+        self.attributes[key] = .array(value.map(SpanAttribute.double))
+    }
+
+    mutating func setAttribute(_ value: Bool, forKey key: String) {
+        self.attributes[key] = .bool(value)
+    }
+
+    mutating func setAttribute(_ value: [Bool], forKey key: String) {
+        self.attributes[key] = .array(value.map(SpanAttribute.bool))
+    }
+
+    mutating func setAttribute(_ value: CustomStringConvertible, forKey key: String) {
+        self.attributes[key] = .stringConvertible(value)
+    }
+
+    mutating func setAttribute(_ value: [CustomStringConvertible], forKey key: String) {
+        self.attributes[key] = .array(value.map(SpanAttribute.stringConvertible))
     }
 
     private(set) var isRecording = false
@@ -223,7 +262,7 @@ struct FakeHTTPServer {
 
         let response = self.catchAllHandler(span.baggage, request, self.client)
         span.baggage.logger.info("Handled HTTP request with status: \(response.status)")
-        span.attributes["http.status"] = .int(response.status)
+        span.setAttribute(response.status, forKey: "http.status")
 
         span.end()
     }
