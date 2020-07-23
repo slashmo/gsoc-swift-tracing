@@ -40,6 +40,55 @@ final class SpanTests: XCTestCase {
         XCTAssertEqual(event.name, "test")
     }
 
+    func testSpanAttributeConvertsCustomStringConvertibleToString() {
+        struct Test: CustomStringConvertible {
+            let description = "test"
+        }
+
+        var span = OTSpan(
+            operationName: "test",
+            startTimestamp: .now(),
+            context: BaggageContext(),
+            kind: .internal,
+            onEnd: { _ in }
+        )
+
+        span.setAttribute(Test(), forKey: "test-attribute")
+        guard case .string(let stringValue) = span.attributes["test-attribute"] else {
+            XCTFail("Expected string attribute, got \(span.attributes).")
+            return
+        }
+        XCTAssertEqual(stringValue, "test")
+    }
+
+    func testSpanAttributeConvertsArrayOfCustomStringConvertiblesToArrayOfStrings() {
+        struct Test: CustomStringConvertible {
+            let description = "test"
+        }
+
+        var span = OTSpan(
+            operationName: "test",
+            startTimestamp: .now(),
+            context: BaggageContext(),
+            kind: .internal,
+            onEnd: { _ in }
+        )
+
+        span.setAttribute([Test(), Test(), Test()], forKey: "test-attribute")
+        guard case .array(let arrayValue) = span.attributes["test-attribute"] else {
+            XCTFail("Expected an array attribute, got \(span.attributes).")
+            return
+        }
+        XCTAssertEqual(arrayValue.count, 3)
+        for attribute in arrayValue {
+            guard case .string(let stringValue) = attribute else {
+                XCTFail("Expected string attribute, got \(attribute).")
+                return
+            }
+            XCTAssertEqual(stringValue, "test")
+        }
+    }
+
     func testSpanAttributeIsExpressibleByStringLiteral() {
         let stringAttribute: SpanAttribute = "test"
         guard case .string(let stringValue) = stringAttribute else {

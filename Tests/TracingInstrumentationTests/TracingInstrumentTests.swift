@@ -135,7 +135,7 @@ struct OTSpan: Span {
 
     private var links = [SpanLink]()
 
-    private var attributes: SpanAttributes = [:] {
+    private(set) var attributes: SpanAttributes = [:] {
         didSet {
             self.isRecording = !self.attributes.isEmpty
         }
@@ -171,14 +171,6 @@ struct OTSpan: Span {
 
     mutating func setAttribute(_ value: [Bool], forKey key: String) {
         self.attributes[key] = .array(value.map(SpanAttribute.bool))
-    }
-
-    mutating func setAttribute(_ value: CustomStringConvertible, forKey key: String) {
-        self.attributes[key] = .stringConvertible(value)
-    }
-
-    mutating func setAttribute(_ value: [CustomStringConvertible], forKey key: String) {
-        self.attributes[key] = .array(value.map(SpanAttribute.stringConvertible))
     }
 
     private(set) var isRecording = false

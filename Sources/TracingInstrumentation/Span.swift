@@ -90,18 +90,6 @@ public protocol Span {
     ///   - key: The attribute key.
     mutating func setAttribute(_ value: [Bool], forKey key: String)
 
-    /// Set a `CustomStringConvertible` value for the given attribute key.
-    /// - Parameters:
-    ///   - value: The `CustomStringConvertible` value to set for the key.
-    ///   - key: The attribute key.
-    mutating func setAttribute(_ value: CustomStringConvertible, forKey key: String)
-
-    /// Set a `[CustomStringConvertible]` value for the given attribute key.
-    /// - Parameters:
-    ///   - value: The `[CustomStringConvertible]` value to set for the key.
-    ///   - key: The attribute key.
-    mutating func setAttribute(_ value: [CustomStringConvertible], forKey key: String)
-
     /// Returns true if this `Span` is recording information like events, attributes, status, etc.
     var isRecording: Bool { get }
 
@@ -122,6 +110,26 @@ extension Span {
         var copy = self
         copy.addEvent(event)
         return copy
+    }
+
+    /// Set a `CustomStringConvertible` value for the given attribute key.
+    /// - Parameters:
+    ///   - value: The `CustomStringConvertible` value to set for the key.
+    ///   - key: The attribute key.
+    public mutating func setAttribute(_ value: CustomStringConvertible, forKey key: String) {
+        self.setAttribute(String(describing: value), forKey: key)
+    }
+
+    /// Set a `[CustomStringConvertible]` value for the given attribute key.
+    ///
+    /// This delegates to `setAttribute(_:[String], forKey:String)` instead of
+    /// `setAttribute(_:CustomStringConvertible, forKey:String)`.
+    ///
+    /// - Parameters:
+    ///   - value: The `[CustomStringConvertible]` value to set for the key.
+    ///   - key: The attribute key.
+    public mutating func setAttribute(_ value: [CustomStringConvertible], forKey key: String) {
+        self.setAttribute(value.map(String.init(describing:)), forKey: key)
     }
 
     /// End this `Span` at the current timestamp.
@@ -176,7 +184,6 @@ public enum SpanAttribute {
     // https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/api.md#set-attributes
 
     case array([SpanAttribute])
-    case stringConvertible(CustomStringConvertible)
 }
 
 extension SpanAttribute: ExpressibleByStringLiteral {

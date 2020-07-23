@@ -139,14 +139,6 @@ private final class TracedLockPrintlnTracer: TracingInstrument {
             self.attributes[key] = .array(value.map(SpanAttribute.bool))
         }
 
-        public mutating func setAttribute(_ value: CustomStringConvertible, forKey key: String) {
-            self.attributes[key] = .stringConvertible(value)
-        }
-
-        public mutating func setAttribute(_ value: [CustomStringConvertible], forKey key: String) {
-            self.attributes[key] = .array(value.map(SpanAttribute.stringConvertible))
-        }
-
         private(set) var isRecording = false
 
         init(
