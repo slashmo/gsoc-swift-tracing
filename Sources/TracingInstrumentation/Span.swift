@@ -108,6 +108,16 @@ extension SpanEvent: ExpressibleByStringLiteral {
 // ==== ----------------------------------------------------------------------------------------------------------------
 // MARK: Span Attribute
 
+public protocol SpanAttributeConvertible {
+    func toSpanAttribute() -> SpanAttribute
+}
+
+extension Int: SpanAttributeConvertible {
+    public func toSpanAttribute() -> SpanAttribute {
+        .int(self)
+    }
+}
+
 /// The value of an attribute used to describe a `Span` or `SpanEvent`.
 public enum SpanAttribute {
     case string(String)
