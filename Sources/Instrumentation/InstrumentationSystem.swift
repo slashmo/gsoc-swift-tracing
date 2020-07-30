@@ -75,14 +75,14 @@ public enum InstrumentationSystem {
     /// - Parameter instrumentType: The type of `Instrument` you want to retrieve an instance for.
     /// - Returns: An `Instrument` instance of the given type or `nil` if no `Instrument` of that type has been bootstrapped.
     public static func instrument<I>(of instrumentType: I.Type) -> I? where I: Instrument {
-        self.__findInstrument(where: { $0 is I }) as? I
+        self._findInstrument(where: { $0 is I }) as? I
     }
 
 }
 
 extension InstrumentationSystem {
     /// :nodoc: INTERNAL API: Do Not Use
-    public static func __findInstrument(where predicate: (Instrument) -> Bool) -> Instrument? {
+    public static func _findInstrument(where predicate: (Instrument) -> Bool) -> Instrument? {
         self.lock.withReaderLock {
             if let multiplex = self._instrument as? MultiplexInstrument {
                 return multiplex.firstInstrument(where: predicate)
