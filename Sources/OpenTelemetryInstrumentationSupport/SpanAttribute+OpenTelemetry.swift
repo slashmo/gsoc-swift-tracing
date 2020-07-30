@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+import NIOHTTP1
 import TracingInstrumentation
 
 public protocol SpanAttributeKey {
@@ -28,9 +29,20 @@ extension Span {
 
 extension SpanAttribute {
     public enum HTTP {
+        public enum Method: SpanAttributeKey {
+            public static let name = "http.method"
+            public typealias Value = HTTPMethod
+        }
+
         public enum StatusCode: SpanAttributeKey {
             public static let name = "http.status_code"
             public typealias Value = Int
         }
+    }
+}
+
+extension HTTPMethod: SpanAttributeConvertible {
+    public func toSpanAttribute() -> SpanAttribute {
+        .string(self.rawValue)
     }
 }

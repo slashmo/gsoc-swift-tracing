@@ -86,13 +86,14 @@ let package = Package(
         .target(
             name: "OpenTelemetryInstrumentationSupport",
             dependencies: [
-                .target(name: "TracingInstrumentation")
+                .target(name: "TracingInstrumentation"),
+                .product(name: "NIOHTTP1", package: "swift-nio")
             ]
         ),
         .testTarget(
             name: "OpenTelemetryInstrumentationSupportTests",
             dependencies: [
-                "OpenTelemetryInstrumentationSupport",
+                "OpenTelemetryInstrumentationSupport"
             ]
         ),
 

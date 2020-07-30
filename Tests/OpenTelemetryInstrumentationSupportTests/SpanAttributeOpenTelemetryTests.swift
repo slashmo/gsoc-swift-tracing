@@ -13,6 +13,7 @@
 
 import Baggage
 import Instrumentation
+import NIOHTTP1
 import OpenTelemetryInstrumentationSupport
 import TracingInstrumentation
 import XCTest
@@ -21,12 +22,21 @@ final class SpanAttributeOpenTelemetryTests: XCTestCase {
     func testSemanticAttributes() {
         InstrumentationSystem.bootstrap(FakeTracer())
         var span = InstrumentationSystem.tracingInstrument.startSpan(named: "test", context: BaggageContext())
+
         span.setAttribute(418, forKey: SpanAttribute.HTTP.StatusCode.self)
+
         guard case .int(let statusCode) = span.attributes[SpanAttribute.HTTP.StatusCode.name] else {
             XCTFail("Expected status code in span attributes, got \(span.attributes)")
             return
         }
         XCTAssertEqual(statusCode, 418)
+
+        span.setAttribute(.GET, forKey: SpanAttribute.HTTP.Method.self)
+        guard case .string(let methodString) = span.attributes[SpanAttribute.HTTP.Method.name] else {
+            XCTFail("Expected raw HTTP method in span attributes, got \(span.attributes)")
+            return
+        }
+        XCTAssertEqual(methodString, HTTPMethod.GET.rawValue)
     }
 }
 
