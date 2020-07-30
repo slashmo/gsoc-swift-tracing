@@ -118,6 +118,12 @@ extension Int: SpanAttributeConvertible {
     }
 }
 
+extension String: SpanAttributeConvertible {
+    public func toSpanAttribute() -> SpanAttribute {
+        .string(self)
+    }
+}
+
 /// The value of an attribute used to describe a `Span` or `SpanEvent`.
 public enum SpanAttribute {
     case string(String)

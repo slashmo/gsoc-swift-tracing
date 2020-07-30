@@ -13,7 +13,6 @@
 
 import Baggage
 import Instrumentation
-import NIOHTTP1
 import OpenTelemetryInstrumentationSupport
 import TracingInstrumentation
 import XCTest
@@ -31,12 +30,12 @@ final class SpanAttributeOpenTelemetryTests: XCTestCase {
         }
         XCTAssertEqual(statusCode, 418)
 
-        span.setAttribute(.GET, forKey: SpanAttribute.HTTP.Method.self)
+        span.setAttribute("GET", forKey: SpanAttribute.HTTP.Method.self)
         guard case .string(let methodString) = span.attributes[SpanAttribute.HTTP.Method.name] else {
             XCTFail("Expected raw HTTP method in span attributes, got \(span.attributes)")
             return
         }
-        XCTAssertEqual(methodString, HTTPMethod.GET.rawValue)
+        XCTAssertEqual(methodString, "GET")
     }
 }
 
