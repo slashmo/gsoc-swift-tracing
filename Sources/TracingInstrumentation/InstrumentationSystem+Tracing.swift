@@ -17,7 +17,7 @@ import Instrumentation
 
 extension InstrumentationSystem {
 
-    /// Get an `TracingInstrument` instance of the given type.
+    /// Get a `TracingInstrument` instance of the given type.
     ///
     /// When using `MultiplexInstrument`, this returns the first instance of the given type stored in the `MultiplexInstrument`.
     ///
