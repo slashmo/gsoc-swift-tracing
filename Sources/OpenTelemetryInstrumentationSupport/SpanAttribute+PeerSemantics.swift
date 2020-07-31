@@ -1,0 +1,54 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift Tracing open source project
+//
+// Copyright (c) 2020 Moritz Lang and the Swift Tracing project authors
+// Licensed under Apache License v2.0
+//
+// See LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+//===----------------------------------------------------------------------===//
+
+import TracingInstrumentation
+
+extension SpanAttributes {
+    /// General semantic attributes.
+    public var peer: PeerAttributes {
+        get {
+            .init(attributes: self)
+        }
+        set {
+            self = newValue.attributes
+        }
+    }
+}
+
+/// Peer-related semantic conventions as defined in the OpenTelemetry spec.
+@dynamicMemberLookup
+public struct PeerAttributes: SpanAttributeNamespace {
+    public var attributes: SpanAttributes
+
+    public init(attributes: SpanAttributes) {
+        self.attributes = attributes
+    }
+
+    public subscript<T>(dynamicMember member: KeyPath<NestedAttributes, SpanAttributeKey<T>>) -> SpanAttribute? {
+        get {
+            let key = NestedAttributes.namespace[keyPath: member]
+            return self.attributes[key.name]
+        }
+        set {
+            let key = NestedAttributes.namespace[keyPath: member]
+            self.attributes[key.name] = newValue
+        }
+    }
+
+    public enum NestedAttributes: NestedSpanAttributesProtocol {
+        case namespace
+
+        /// The service.name of the remote service. SHOULD be equal to the actual service.name resource attribute of the remote service if any.
+        public var service: SpanAttributeKey<String> { "peer.service" }
+    }
+}

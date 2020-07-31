@@ -147,10 +147,8 @@ extension SpanAttributeNamespace {
     }
 
     public subscript<Namespace>(dynamicMember dynamicMember: KeyPath<SpanAttribute, Namespace>) -> Namespace
-    where Namespace: SpanAttributeNamespace {
-        get {
-            SpanAttribute.__magic[keyPath: dynamicMember]
-        }
+        where Namespace: SpanAttributeNamespace {
+        SpanAttribute.__magic[keyPath: dynamicMember]
     }
 }
 
@@ -169,7 +167,7 @@ public enum SpanAttribute: Equatable {
 
     case __magic
 
-    public static func ==(lhs: SpanAttribute, rhs: SpanAttribute) -> Bool {
+    public static func == (lhs: SpanAttribute, rhs: SpanAttribute) -> Bool {
         switch (lhs, rhs) {
         case (.string(let l), .string(let r)): return l == r
         case (.int(let l), .int(let r)): return l == r
@@ -185,11 +183,9 @@ public enum SpanAttribute: Equatable {
              (.stringConvertible, _),
              (.__magic, _):
             return false
-
         }
     }
 }
-
 
 public protocol SpanAttributeConvertible {
     func toSpanAttribute() -> SpanAttribute
@@ -243,7 +239,6 @@ extension SpanAttribute: ExpressibleByArrayLiteral {
     }
 }
 
-
 /// A collection of `SpanAttribute`s.
 @dynamicMemberLookup
 public struct SpanAttributes {
@@ -270,7 +265,7 @@ public struct SpanAttributes {
 
     /// Enables for type-safe fluent accessors for attributes.
     ///
-    /// TODO: document the pattern maybe on SpanAttributes?
+    // TODO: document the pattern maybe on SpanAttributes?
     public subscript<T>(dynamicMember dynamicMember: KeyPath<SpanAttribute, SpanAttributeKey<T>>) -> SpanAttribute? {
         get {
             let key = SpanAttribute.__magic[keyPath: dynamicMember]
@@ -284,12 +279,10 @@ public struct SpanAttributes {
 
     /// Enables for type-safe nested namespaces for attribute accessors.
     ///
-    /// TODO: document the pattern maybe on SpanAttributes?
+    // TODO: document the pattern maybe on SpanAttributes?
     public subscript<Namespace>(dynamicMember dynamicMember: KeyPath<SpanAttribute, Namespace>) -> Namespace
-    where Namespace: SpanAttributeNamespace {
-        get {
-            SpanAttribute.__magic[keyPath: dynamicMember]
-        }
+        where Namespace: SpanAttributeNamespace {
+        SpanAttribute.__magic[keyPath: dynamicMember]
     }
 
     /// Calls the given callback for each attribute stored in this collection.

@@ -136,7 +136,7 @@ final class SpanTests: XCTestCase {
         attributes.sampleHttp.statusCode = 200
 
         XCTAssertEqual(attributes.name, SpanAttribute.string("kappa"))
-        XCTAssertEqual(attributes.sampleHttp.statusCode, SpanAttribute.int(200))
+        XCTAssertEqual(attributes.sampleHttp.statusCode, 200)
     }
 
     func testSpanAttributesAreIteratable() {
@@ -199,4 +199,3 @@ public struct HTTPAttributes: SpanAttributeNamespace {
         }
     }
 }
-
