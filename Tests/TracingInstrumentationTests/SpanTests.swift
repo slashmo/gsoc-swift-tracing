@@ -105,17 +105,38 @@ final class SpanTests: XCTestCase {
         XCTAssertEqual(stringValue, "test")
     }
 
-    func testSpanAttributesProvideSubscriptAccess() {
+//    func testSpanAttributesProvideSubscriptAccess() {
+//        var attributes: SpanAttributes = [:]
+//        XCTAssert(attributes.isEmpty)
+//
+//        attributes["0"] = false
+//        XCTAssertFalse(attributes.isEmpty)
+//
+//        guard case .bool(let flag) = attributes["0"], !flag else {
+//            XCTFail("Expected subscript getter to return the bool attribute.")
+//            return
+//        }
+//    }
+
+    func testSpanAttributesUX() {
         var attributes: SpanAttributes = [:]
-        XCTAssert(attributes.isEmpty)
 
-        attributes["0"] = false
-        XCTAssertFalse(attributes.isEmpty)
+        // normally we can use just the span attribute values, and it is not type safe or guided in any way:
+        attributes["thing.name"] = "hello"
+        attributes["meaning.of.life"] = 42
+        attributes["alive"] = SpanAttribute.bool(false)
 
-        guard case .bool(let flag) = attributes["0"], !flag else {
-            XCTFail("Expected subscript getter to return the bool attribute.")
-            return
-        }
+        XCTAssertEqual(attributes["thing.name"], SpanAttribute.string("hello"))
+        XCTAssertEqual(attributes["meaning.of.life"], SpanAttribute.int(42))
+        XCTAssertEqual(attributes["alive"], SpanAttribute.bool(false))
+
+        // An import like: `import OpenTelemetry...` can enable type-safe well defined attributes,
+        // e.g. as defined in https://github.com/open-telemetry/opentelemetry-specification/tree/master/specification/trace/semantic_conventions
+        attributes.name = "kappa"
+        attributes.sampleHttp.statusCode = 200
+
+        XCTAssertEqual(attributes.name, SpanAttribute.string("kappa"))
+        XCTAssertEqual(attributes.sampleHttp.statusCode, SpanAttribute.int(200))
     }
 
     func testSpanAttributesAreIteratable() {
@@ -132,3 +153,50 @@ final class SpanTests: XCTestCase {
         }
     }
 }
+
+// ==== ----------------------------------------------------------------------------------------------------------------
+// MARK: Example Span attributes
+
+extension SpanAttribute {
+    var name: SpanAttributeKey<String> {
+        "name"
+    }
+}
+
+extension SpanAttributes {
+    public var sampleHttp: HTTPAttributes {
+        get {
+            .init(attributes: self)
+        }
+        set {
+            self = newValue.attributes
+        }
+    }
+}
+
+@dynamicMemberLookup
+public struct HTTPAttributes: SpanAttributeNamespace {
+    public var attributes: SpanAttributes
+    public init(attributes: SpanAttributes) {
+        self.attributes = attributes
+    }
+
+    public enum NestedAttributes: NestedSpanAttributesProtocol {
+        case namespace
+        public var statusCode: SpanAttributeKey<Int> {
+            "http.status_code"
+        }
+    }
+
+    public subscript<T>(dynamicMember dynamicMember: KeyPath<NestedAttributes, SpanAttributeKey<T>>) -> SpanAttribute? {
+        get {
+            let key = NestedAttributes.namespace[keyPath: dynamicMember]
+            return self.attributes[key.name]
+        }
+        set {
+            let key = NestedAttributes.namespace[keyPath: dynamicMember]
+            self.attributes[key.name] = newValue
+        }
+    }
+}
+

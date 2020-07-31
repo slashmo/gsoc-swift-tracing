@@ -16,11 +16,10 @@ import Baggage
 /// A `Span` type that follows the OpenTracing/OpenTelemetry spec. The span itself should not be
 /// initializable via its public interface. `Span` creation should instead go through `tracer.startSpan`
 /// where `tracer` conforms to `TracingInstrument`.
+///
+/// - SeeAlso: [OpenTelemetry Specification: Span](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/api.md#span).
 public protocol Span {
     /// The operation name is a human-readable string which concisely identifies the work represented by the `Span`.
-    ///
-    /// For guideline on how to name `Span`s, please take a look at the
-    /// [OpenTelemetry specification](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/api.md#span).
     var operationName: String { get }
 
     /// The kind of this span.
@@ -108,6 +107,90 @@ extension SpanEvent: ExpressibleByStringLiteral {
 // ==== ----------------------------------------------------------------------------------------------------------------
 // MARK: Span Attribute
 
+public struct SpanAttributeKey<T>: Hashable, ExpressibleByStringLiteral {
+    public let name: String
+
+    public init(name: String) {
+        self.name = name
+    }
+
+    public init(stringLiteral value: StringLiteralType) {
+        self.name = value
+    }
+}
+
+@dynamicMemberLookup
+public protocol SpanAttributeNamespace {
+    var attributes: SpanAttributes { get set }
+    associatedtype NestedAttributes: NestedSpanAttributesProtocol
+
+    subscript<T>(dynamicMember dynamicMember: KeyPath<SpanAttribute, SpanAttributeKey<T>>) -> SpanAttribute? { get set }
+
+    subscript<Namespace>(dynamicMember dynamicMember: KeyPath<SpanAttribute, Namespace>) -> Namespace
+        where Namespace: SpanAttributeNamespace { get }
+}
+
+public protocol NestedSpanAttributesProtocol {
+    static var namespace: Self { get }
+}
+
+extension SpanAttributeNamespace {
+    public subscript<T>(dynamicMember dynamicMember: KeyPath<SpanAttribute, SpanAttributeKey<T>>) -> SpanAttribute? {
+        get {
+            let key = SpanAttribute.__magic[keyPath: dynamicMember]
+            return self.attributes[key.name]
+        }
+        set {
+            let key = SpanAttribute.__magic[keyPath: dynamicMember]
+            self.attributes[key.name] = newValue
+        }
+    }
+
+    public subscript<Namespace>(dynamicMember dynamicMember: KeyPath<SpanAttribute, Namespace>) -> Namespace
+    where Namespace: SpanAttributeNamespace {
+        get {
+            SpanAttribute.__magic[keyPath: dynamicMember]
+        }
+    }
+}
+
+/// The value of an attribute used to describe a `Span` or `SpanEvent`.
+public enum SpanAttribute: Equatable {
+    case string(String)
+    case int(Int)
+    case double(Double)
+    case bool(Bool)
+
+    // TODO: This could be misused to create a heterogeneous array of attributes, which is not allowed in OT:
+    // https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/api.md#set-attributes
+
+    case array([SpanAttribute])
+    case stringConvertible(CustomStringConvertible)
+
+    case __magic
+
+    public static func ==(lhs: SpanAttribute, rhs: SpanAttribute) -> Bool {
+        switch (lhs, rhs) {
+        case (.string(let l), .string(let r)): return l == r
+        case (.int(let l), .int(let r)): return l == r
+        case (.double(let l), .double(let r)): return l == r
+        case (.bool(let l), .bool(let r)): return l == r
+        case (.array(let l), .array(let r)): return l == r
+        case (.stringConvertible(let l), .stringConvertible(let r)): return "\(l)" == "\(r)"
+        case (.string, _),
+             (.int, _),
+             (.double, _),
+             (.bool, _),
+             (.array, _),
+             (.stringConvertible, _),
+             (.__magic, _):
+            return false
+
+        }
+    }
+}
+
+
 public protocol SpanAttributeConvertible {
     func toSpanAttribute() -> SpanAttribute
 }
@@ -122,20 +205,6 @@ extension String: SpanAttributeConvertible {
     public func toSpanAttribute() -> SpanAttribute {
         .string(self)
     }
-}
-
-/// The value of an attribute used to describe a `Span` or `SpanEvent`.
-public enum SpanAttribute {
-    case string(String)
-    case int(Int)
-    case double(Double)
-    case bool(Bool)
-
-    // TODO: This could be misused to create a heterogeneous array of attributes, which is not allowed in OT:
-    // https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/api.md#set-attributes
-
-    case array([SpanAttribute])
-    case stringConvertible(CustomStringConvertible)
 }
 
 extension SpanAttribute: ExpressibleByStringLiteral {
@@ -174,7 +243,9 @@ extension SpanAttribute: ExpressibleByArrayLiteral {
     }
 }
 
+
 /// A collection of `SpanAttribute`s.
+@dynamicMemberLookup
 public struct SpanAttributes {
     private var _attributes = [String: SpanAttribute]()
 
@@ -185,13 +256,39 @@ public struct SpanAttributes {
     }
 
     /// Accesses the `SpanAttribute` with the given name for reading and writing.
+    ///
     /// - Parameter name: The name of the attribute used to identify the attribute.
     /// - Returns: The `SpanAttribute` identified by the given name, or `nil` if it's not present.
     public subscript(_ name: String) -> SpanAttribute? {
         get {
             self._attributes[name]
-        } set {
+        }
+        set {
             self._attributes[name] = newValue
+        }
+    }
+
+    /// Enables for type-safe fluent accessors for attributes.
+    ///
+    /// TODO: document the pattern maybe on SpanAttributes?
+    public subscript<T>(dynamicMember dynamicMember: KeyPath<SpanAttribute, SpanAttributeKey<T>>) -> SpanAttribute? {
+        get {
+            let key = SpanAttribute.__magic[keyPath: dynamicMember]
+            return self._attributes[key.name]
+        }
+        set {
+            let key = SpanAttribute.__magic[keyPath: dynamicMember]
+            self._attributes[key.name] = newValue
+        }
+    }
+
+    /// Enables for type-safe nested namespaces for attribute accessors.
+    ///
+    /// TODO: document the pattern maybe on SpanAttributes?
+    public subscript<Namespace>(dynamicMember dynamicMember: KeyPath<SpanAttribute, Namespace>) -> Namespace
+    where Namespace: SpanAttributeNamespace {
+        get {
+            SpanAttribute.__magic[keyPath: dynamicMember]
         }
     }
 
@@ -218,21 +315,21 @@ extension SpanAttributes: ExpressibleByDictionaryLiteral {
 
 /// Represents the status of a finished Span. It's composed of a canonical code in conjunction with an optional descriptive message.
 public struct SpanStatus {
-    public let canonicalCode: CannonicalCode
+    public let canonicalCode: CanonicalCode
     public let message: String?
 
     /// Create a new `SpanStatus`.
     /// - Parameters:
     ///   - canonicalCode: The canonical code of this `SpanStatus`.
     ///   - message: The optional descriptive message of this `SpanStatus`. Defaults to nil.
-    public init(canonicalCode: CannonicalCode, message: String? = nil) {
+    public init(canonicalCode: CanonicalCode, message: String? = nil) {
         self.canonicalCode = canonicalCode
         self.message = message
     }
 
     /// Represents the canonical set of status codes of a finished Span, following
     /// the [Standard GRPC](https://github.com/grpc/grpc/blob/master/doc/statuscodes.md) codes:
-    public enum CannonicalCode {
+    public enum CanonicalCode {
         /// The operation completed successfully.
         case ok
         /// The operation was cancelled (typically by the caller).
