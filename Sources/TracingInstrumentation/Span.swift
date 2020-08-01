@@ -107,7 +107,7 @@ extension SpanEvent: ExpressibleByStringLiteral {
 // ==== ----------------------------------------------------------------------------------------------------------------
 // MARK: Span Attribute
 
-public struct SpanAttributeKey<T>: Hashable, ExpressibleByStringLiteral {
+public struct SpanAttributeKey<T>: Hashable, ExpressibleByStringLiteral where T: SpanAttributeConvertible {
     public let name: String
 
     public init(name: String) {
@@ -175,6 +175,7 @@ public enum SpanAttribute: Equatable {
     // https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/api.md#set-attributes
 
     case array([SpanAttribute])
+    case stringConvertible(CustomStringConvertible)
 
     /// This is a "magic value" that is used to enable the KeyPath based accessors to specific attributes.
     /// This value will never be stored or returned, and any attempt of doing so would WILL crash your application.
@@ -192,6 +193,8 @@ public enum SpanAttribute: Equatable {
             return value
         case .array(let value):
             return value
+        case .stringConvertible(let value):
+            return value
         case .__namespace:
             fatalError("__namespace MUST NOT be stored not can be extracted from using anyValue")
         }
@@ -204,11 +207,13 @@ public enum SpanAttribute: Equatable {
         case (.double(let l), .double(let r)): return l == r
         case (.bool(let l), .bool(let r)): return l == r
         case (.array(let l), .array(let r)): return l == r
+        case (.stringConvertible(let l), .stringConvertible(let r)): return "\(l)" == "\(r)"
         case (.string, _),
              (.int, _),
              (.double, _),
              (.bool, _),
              (.array, _),
+             (.stringConvertible, _),
              (.__namespace, _):
             return false
         }

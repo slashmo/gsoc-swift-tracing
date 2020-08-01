@@ -144,6 +144,17 @@ final class SpanTests: XCTestCase {
         XCTAssertEqual(attributes.sampleHttp.statusCode, 200)
     }
 
+    func testSpanAttributesCustomValue() {
+        var attributes: SpanAttributes = [:]
+
+        // normally we can use just the span attribute values, and it is not type safe or guided in any way:
+        attributes.sampleHttp.customType = CustomAttributeValue()
+
+        XCTAssertEqual(attributes["http.custom_value"], SpanAttribute.stringConvertible(CustomAttributeValue()))
+        XCTAssertEqual(String(reflecting: attributes.sampleHttp.customType), "Optional(CustomAttributeValue())")
+        XCTAssertEqual(attributes.sampleHttp.customType, CustomAttributeValue())
+    }
+
     func testSpanAttributesAreIterable() {
         let attributes: SpanAttributes = ["0": 0, "1": true, "2": "test"]
 
@@ -196,5 +207,19 @@ public struct HTTPAttributes: SpanAttributeNamespace {
         public var codesArray: SpanAttributeKey<[Int]> {
             "http.codes_array"
         }
+
+        public var customType: SpanAttributeKey<CustomAttributeValue> {
+            "http.custom_value"
+        }
+    }
+}
+
+public struct CustomAttributeValue: Equatable, CustomStringConvertible, SpanAttributeConvertible {
+    public func toSpanAttribute() -> SpanAttribute {
+        .stringConvertible(self)
+    }
+
+    public var description: String {
+        "CustomAttributeValue()"
     }
 }
