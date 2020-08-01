@@ -121,34 +121,46 @@ public struct SpanAttributeKey<T>: Hashable, ExpressibleByStringLiteral {
 
 @dynamicMemberLookup
 public protocol SpanAttributeNamespace {
-    var attributes: SpanAttributes { get set }
+    /// Type that contains the nested attributes, e.g. HTTPAttributes which would contain `statusCode` and similar vars.
     associatedtype NestedAttributes: NestedSpanAttributesProtocol
 
-    subscript<T>(dynamicMember dynamicMember: KeyPath<SpanAttribute, SpanAttributeKey<T>>) -> SpanAttribute? { get set }
+    var attributes: SpanAttributes { get set }
+
+    subscript<T>(dynamicMember dynamicMember: KeyPath<NestedAttributes, SpanAttributeKey<T>>) -> T? where T: SpanAttributeConvertible { get set }
 
     subscript<Namespace>(dynamicMember dynamicMember: KeyPath<SpanAttribute, Namespace>) -> Namespace
         where Namespace: SpanAttributeNamespace { get }
 }
 
 public protocol NestedSpanAttributesProtocol {
-    static var namespace: Self { get }
+    init()
+    static var __namespace: Self { get }
+}
+
+extension NestedSpanAttributesProtocol {
+    public static var __namespace: Self { .init() }
 }
 
 extension SpanAttributeNamespace {
-    public subscript<T>(dynamicMember dynamicMember: KeyPath<SpanAttribute, SpanAttributeKey<T>>) -> SpanAttribute? {
+    public subscript<T>(dynamicMember dynamicMember: KeyPath<NestedAttributes, SpanAttributeKey<T>>) -> T? where T: SpanAttributeConvertible {
         get {
-            let key = SpanAttribute.__magic[keyPath: dynamicMember]
-            return self.attributes[key.name]
+            let key = NestedAttributes.__namespace[keyPath: dynamicMember]
+            let spanAttribute: SpanAttribute? = self.attributes[key.name]
+            if let value = spanAttribute?.anyValue {
+                return value as? T
+            } else {
+                return nil
+            }
         }
         set {
-            let key = SpanAttribute.__magic[keyPath: dynamicMember]
-            self.attributes[key.name] = newValue
+            let key = NestedAttributes.__namespace[keyPath: dynamicMember]
+            self.attributes[key.name] = newValue?.toSpanAttribute()
         }
     }
 
     public subscript<Namespace>(dynamicMember dynamicMember: KeyPath<SpanAttribute, Namespace>) -> Namespace
         where Namespace: SpanAttributeNamespace {
-        SpanAttribute.__magic[keyPath: dynamicMember]
+        SpanAttribute.__namespace[keyPath: dynamicMember]
     }
 }
 
@@ -163,9 +175,27 @@ public enum SpanAttribute: Equatable {
     // https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/api.md#set-attributes
 
     case array([SpanAttribute])
-    case stringConvertible(CustomStringConvertible)
 
-    case __magic
+    /// This is a "magic value" that is used to enable the KeyPath based accessors to specific attributes.
+    /// This value will never be stored or returned, and any attempt of doing so would WILL crash your application.
+    case __namespace
+
+    internal var anyValue: Any {
+        switch self {
+        case .string(let value):
+            return value
+        case .int(let value):
+            return value
+        case .double(let value):
+            return value
+        case .bool(let value):
+            return value
+        case .array(let value):
+            return value
+        case .__namespace:
+            fatalError("__namespace MUST NOT be stored not can be extracted from using anyValue")
+        }
+    }
 
     public static func == (lhs: SpanAttribute, rhs: SpanAttribute) -> Bool {
         switch (lhs, rhs) {
@@ -174,14 +204,12 @@ public enum SpanAttribute: Equatable {
         case (.double(let l), .double(let r)): return l == r
         case (.bool(let l), .bool(let r)): return l == r
         case (.array(let l), .array(let r)): return l == r
-        case (.stringConvertible(let l), .stringConvertible(let r)): return "\(l)" == "\(r)"
         case (.string, _),
              (.int, _),
              (.double, _),
              (.bool, _),
              (.array, _),
-             (.stringConvertible, _),
-             (.__magic, _):
+             (.__namespace, _):
             return false
         }
     }
@@ -191,15 +219,33 @@ public protocol SpanAttributeConvertible {
     func toSpanAttribute() -> SpanAttribute
 }
 
+extension String: SpanAttributeConvertible {
+    public func toSpanAttribute() -> SpanAttribute {
+        .string(self)
+    }
+}
+
 extension Int: SpanAttributeConvertible {
     public func toSpanAttribute() -> SpanAttribute {
         .int(self)
     }
 }
 
-extension String: SpanAttributeConvertible {
+extension Double: SpanAttributeConvertible {
     public func toSpanAttribute() -> SpanAttribute {
-        .string(self)
+        .double(self)
+    }
+}
+
+extension Bool: SpanAttributeConvertible {
+    public func toSpanAttribute() -> SpanAttribute {
+        .bool(self)
+    }
+}
+
+extension Array: SpanAttributeConvertible where Element: SpanAttributeConvertible {
+    public func toSpanAttribute() -> SpanAttribute {
+        .array(self.map { $0.toSpanAttribute() })
     }
 }
 
@@ -259,7 +305,12 @@ public struct SpanAttributes {
             self._attributes[name]
         }
         set {
-            self._attributes[name] = newValue
+            switch newValue {
+            case .__namespace:
+                fatalError("__namespace magic value MUST NOT be stored as an attribute. Attempted to store under [\(name)] key.")
+            default:
+                self._attributes[name] = newValue
+            }
         }
     }
 
@@ -268,11 +319,11 @@ public struct SpanAttributes {
     // TODO: document the pattern maybe on SpanAttributes?
     public subscript<T>(dynamicMember dynamicMember: KeyPath<SpanAttribute, SpanAttributeKey<T>>) -> SpanAttribute? {
         get {
-            let key = SpanAttribute.__magic[keyPath: dynamicMember]
+            let key = SpanAttribute.__namespace[keyPath: dynamicMember]
             return self._attributes[key.name]
         }
         set {
-            let key = SpanAttribute.__magic[keyPath: dynamicMember]
+            let key = SpanAttribute.__namespace[keyPath: dynamicMember]
             self._attributes[key.name] = newValue
         }
     }
@@ -282,7 +333,7 @@ public struct SpanAttributes {
     // TODO: document the pattern maybe on SpanAttributes?
     public subscript<Namespace>(dynamicMember dynamicMember: KeyPath<SpanAttribute, Namespace>) -> Namespace
         where Namespace: SpanAttributeNamespace {
-        SpanAttribute.__magic[keyPath: dynamicMember]
+        SpanAttribute.__namespace[keyPath: dynamicMember]
     }
 
     /// Calls the given callback for each attribute stored in this collection.

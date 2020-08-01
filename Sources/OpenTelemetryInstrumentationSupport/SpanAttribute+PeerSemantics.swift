@@ -34,19 +34,8 @@ public struct PeerAttributes: SpanAttributeNamespace {
         self.attributes = attributes
     }
 
-    public subscript<T>(dynamicMember member: KeyPath<NestedAttributes, SpanAttributeKey<T>>) -> SpanAttribute? {
-        get {
-            let key = NestedAttributes.namespace[keyPath: member]
-            return self.attributes[key.name]
-        }
-        set {
-            let key = NestedAttributes.namespace[keyPath: member]
-            self.attributes[key.name] = newValue
-        }
-    }
-
-    public enum NestedAttributes: NestedSpanAttributesProtocol {
-        case namespace
+    public struct NestedAttributes: NestedSpanAttributesProtocol {
+        public init() {}
 
         /// The service.name of the remote service. SHOULD be equal to the actual service.name resource attribute of the remote service if any.
         public var service: SpanAttributeKey<String> { "peer.service" }

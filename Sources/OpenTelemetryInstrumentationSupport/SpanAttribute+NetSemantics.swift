@@ -34,19 +34,8 @@ public struct NetAttributes: SpanAttributeNamespace {
         self.attributes = attributes
     }
 
-    public subscript<T>(dynamicMember member: KeyPath<NestedAttributes, SpanAttributeKey<T>>) -> SpanAttribute? {
-        get {
-            let key = NestedAttributes.namespace[keyPath: member]
-            return self.attributes[key.name]
-        }
-        set {
-            let key = NestedAttributes.namespace[keyPath: member]
-            self.attributes[key.name] = newValue
-        }
-    }
-
-    public enum NestedAttributes: NestedSpanAttributesProtocol {
-        case namespace
+    public struct NestedAttributes: NestedSpanAttributesProtocol {
+        public init() {}
 
         /// Transport protocol used.
         public var transport: SpanAttributeKey<String> { "net.transport" }
