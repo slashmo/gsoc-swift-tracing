@@ -22,7 +22,7 @@ final class SpanAttributeSemanticsTests: XCTestCase {
         var attributes: SpanAttributes = [:]
 
         attributes.http.method = "GET"
-        XCTAssertEqual(attributes.http.method, "GET".toSpanAttribute())
+        XCTAssertEqual(attributes.http.method, "GET")
 
         attributes.net.hostPort = 8080
         XCTAssertEqual(attributes.net.hostPort, 8080)

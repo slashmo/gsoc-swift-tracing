@@ -34,19 +34,8 @@ public struct EndUserAttributes: SpanAttributeNamespace {
         self.attributes = attributes
     }
 
-    public subscript<T>(dynamicMember member: KeyPath<NestedAttributes, SpanAttributeKey<T>>) -> SpanAttribute? {
-        get {
-            let key = NestedAttributes.namespace[keyPath: member]
-            return self.attributes[key.name]
-        }
-        set {
-            let key = NestedAttributes.namespace[keyPath: member]
-            self.attributes[key.name] = newValue
-        }
-    }
-
-    public enum NestedAttributes: NestedSpanAttributesProtocol {
-        case namespace
+    public struct NestedAttributes: NestedSpanAttributesProtocol {
+        public init() {}
 
         /// Username or client_id extracted from the access token or Authorization header in the inbound request from outside the system.
         public var id: SpanAttributeKey<String> { "enduser.id" }

@@ -124,22 +124,38 @@ final class SpanTests: XCTestCase {
         // normally we can use just the span attribute values, and it is not type safe or guided in any way:
         attributes["thing.name"] = "hello"
         attributes["meaning.of.life"] = 42
-        attributes["alive"] = SpanAttribute.bool(false)
+        attributes["integers"] = [1, 2, 3, 4]
+        attributes["names"] = ["alpha", "beta"]
+        attributes["bools"] = [true, false, true]
+        attributes["alive"] = false
 
         XCTAssertEqual(attributes["thing.name"], SpanAttribute.string("hello"))
         XCTAssertEqual(attributes["meaning.of.life"], SpanAttribute.int(42))
         XCTAssertEqual(attributes["alive"], SpanAttribute.bool(false))
 
-        // An import like: `import OpenTelemetry...` can enable type-safe well defined attributes,
+        // An import like: `import OpenTelemetryInstrumentationSupport` can enable type-safe well defined attributes,
         // e.g. as defined in https://github.com/open-telemetry/opentelemetry-specification/tree/master/specification/trace/semantic_conventions
         attributes.name = "kappa"
         attributes.sampleHttp.statusCode = 200
+        attributes.sampleHttp.codesArray = [1, 2, 3]
 
         XCTAssertEqual(attributes.name, SpanAttribute.string("kappa"))
+        XCTAssertEqual(attributes.name, "kappa")
         XCTAssertEqual(attributes.sampleHttp.statusCode, 200)
     }
 
-    func testSpanAttributesAreIteratable() {
+    func testSpanAttributesCustomValue() {
+        var attributes: SpanAttributes = [:]
+
+        // normally we can use just the span attribute values, and it is not type safe or guided in any way:
+        attributes.sampleHttp.customType = CustomAttributeValue()
+
+        XCTAssertEqual(attributes["http.custom_value"], SpanAttribute.stringConvertible(CustomAttributeValue()))
+        XCTAssertEqual(String(reflecting: attributes.sampleHttp.customType), "Optional(CustomAttributeValue())")
+        XCTAssertEqual(attributes.sampleHttp.customType, CustomAttributeValue())
+    }
+
+    func testSpanAttributesAreIterable() {
         let attributes: SpanAttributes = ["0": 0, "1": true, "2": "test"]
 
         var dictionary = [String: SpanAttribute]()
@@ -181,21 +197,29 @@ public struct HTTPAttributes: SpanAttributeNamespace {
         self.attributes = attributes
     }
 
-    public enum NestedAttributes: NestedSpanAttributesProtocol {
-        case namespace
+    public struct NestedAttributes: NestedSpanAttributesProtocol {
+        public init() {}
+
         public var statusCode: SpanAttributeKey<Int> {
             "http.status_code"
         }
+
+        public var codesArray: SpanAttributeKey<[Int]> {
+            "http.codes_array"
+        }
+
+        public var customType: SpanAttributeKey<CustomAttributeValue> {
+            "http.custom_value"
+        }
+    }
+}
+
+public struct CustomAttributeValue: Equatable, CustomStringConvertible, SpanAttributeConvertible {
+    public func toSpanAttribute() -> SpanAttribute {
+        .stringConvertible(self)
     }
 
-    public subscript<T>(dynamicMember dynamicMember: KeyPath<NestedAttributes, SpanAttributeKey<T>>) -> SpanAttribute? {
-        get {
-            let key = NestedAttributes.namespace[keyPath: dynamicMember]
-            return self.attributes[key.name]
-        }
-        set {
-            let key = NestedAttributes.namespace[keyPath: dynamicMember]
-            self.attributes[key.name] = newValue
-        }
+    public var description: String {
+        "CustomAttributeValue()"
     }
 }

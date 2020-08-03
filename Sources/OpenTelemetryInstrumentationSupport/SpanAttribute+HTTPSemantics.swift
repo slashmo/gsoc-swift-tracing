@@ -34,19 +34,8 @@ public struct HTTPAttributes: SpanAttributeNamespace {
         self.attributes = attributes
     }
 
-    public subscript<T>(dynamicMember member: KeyPath<NestedAttributes, SpanAttributeKey<T>>) -> SpanAttribute? {
-        get {
-            let key = NestedAttributes.namespace[keyPath: member]
-            return self.attributes[key.name]
-        }
-        set {
-            let key = NestedAttributes.namespace[keyPath: member]
-            self.attributes[key.name] = newValue
-        }
-    }
-
-    public enum NestedAttributes: NestedSpanAttributesProtocol {
-        case namespace
+    public struct NestedAttributes: NestedSpanAttributesProtocol {
+        public init() {}
 
         /// HTTP request method. E.g. "GET".
         public var method: SpanAttributeKey<String> { "http.method" }
