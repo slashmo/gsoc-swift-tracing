@@ -27,6 +27,8 @@ public struct NoOpTracingInstrument: TracingInstrument {
 
     public func forceFlush() {}
 
+    public func shutdown() {}
+
     public func inject<Carrier, Injector>(
         _ context: BaggageContext,
         into carrier: inout Carrier,

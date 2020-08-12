@@ -71,6 +71,8 @@ public struct OSSignpostTracingInstrument: TracingInstrument {
     }
 
     public func forceFlush() {}
+
+    public func shutdown() {}
 }
 
 // ==== ----------------------------------------------------------------------------------------------------------------

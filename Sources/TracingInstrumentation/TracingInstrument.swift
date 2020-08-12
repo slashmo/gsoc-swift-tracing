@@ -37,6 +37,14 @@ public protocol TracingInstrument: Instrument {
     ///
     /// This function should not block indefinitely, implementations should offer a configurable timeout for flush operations.
     func forceFlush()
+
+    /// Shuts down the `TracingInstrument`. This is an opportunity for the tracer to do any cleanup required.
+    ///
+    /// This function should be called only once for each `TracingInstrument` instance. After the call to shutdown subsequent calls to
+    /// `forceFlush` are not allowed.
+    ///
+    /// This function should not block indefinitely, implementations may offer a configurable timeout for flush operations.
+    func shutdown()
 }
 
 extension TracingInstrument {
