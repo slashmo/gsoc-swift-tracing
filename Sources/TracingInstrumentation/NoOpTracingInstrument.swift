@@ -48,13 +48,6 @@ public struct NoOpTracingInstrument: TracingInstrument {
     public struct NoOpSpan: Span {
         public var operationName: String = ""
         public var status: SpanStatus?
-        public let kind: SpanKind = .internal
-
-        public var startTimestamp: Timestamp {
-            .now()
-        }
-
-        public var endTimestamp: Timestamp?
 
         public var context: BaggageContext {
             .init()
