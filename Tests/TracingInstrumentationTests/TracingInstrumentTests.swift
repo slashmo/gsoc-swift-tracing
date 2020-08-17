@@ -111,11 +111,7 @@ struct TestSpan: Span {
     let operationName: String
     private let kind: SpanKind
 
-    private var status: SpanStatus? {
-        didSet {
-            self.isRecording = self.status != nil
-        }
-    }
+    private var status: SpanStatus?
 
     private let startTimestamp: Timestamp
     private(set) var endTimestamp: Timestamp?
@@ -156,6 +152,7 @@ struct TestSpan: Span {
 
     mutating func setStatus(_ status: SpanStatus) {
         self.status = status
+        self.isRecording = true
     }
 
     mutating func addLink(_ link: SpanLink) {
