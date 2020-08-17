@@ -25,7 +25,7 @@ public protocol Span {
     /// The read-only `BaggageContext` of this `Span`, set when starting this `Span`.
     var context: BaggageContext { get }
 
-    /// Set the status..
+    /// Set the status.
     /// - Parameter status: The status of this `Span`.
     mutating func setStatus(_ status: SpanStatus)
     
