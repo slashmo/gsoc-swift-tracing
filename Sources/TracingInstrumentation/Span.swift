@@ -132,6 +132,7 @@ public struct SpanAttributeKey<T>: Hashable, ExpressibleByStringLiteral where T:
     }
 }
 
+#if compiler(>=5.2)
 @dynamicMemberLookup
 public protocol SpanAttributeNamespace {
     /// Type that contains the nested attributes, e.g. HTTPAttributes which would contain `statusCode` and similar vars.
@@ -176,6 +177,7 @@ extension SpanAttributeNamespace {
         SpanAttribute.__namespace[keyPath: dynamicMember]
     }
 }
+#endif
 
 /// The value of an attribute used to describe a `Span` or `SpanEvent`.
 public enum SpanAttribute: Equatable {
@@ -190,9 +192,11 @@ public enum SpanAttribute: Equatable {
     case array([SpanAttribute])
     case stringConvertible(CustomStringConvertible)
 
+    #if compiler(>=5.2)
     /// This is a "magic value" that is used to enable the KeyPath based accessors to specific attributes.
     /// This value will never be stored or returned, and any attempt of doing so would WILL crash your application.
     case __namespace
+    #endif
 
     internal var anyValue: Any {
         switch self {
@@ -208,8 +212,10 @@ public enum SpanAttribute: Equatable {
             return value
         case .stringConvertible(let value):
             return value
+        #if compiler(>=5.2)
         case .__namespace:
             fatalError("__namespace MUST NOT be stored not can be extracted from using anyValue")
+        #endif
         }
     }
 
@@ -226,9 +232,12 @@ public enum SpanAttribute: Equatable {
              (.double, _),
              (.bool, _),
              (.array, _),
-             (.stringConvertible, _),
-             (.__namespace, _):
+             (.stringConvertible, _):
             return false
+        #if compiler(>=5.2)
+        case (.__namespace, _):
+            return false
+        #endif
         }
     }
 }
@@ -239,31 +248,31 @@ public protocol SpanAttributeConvertible {
 
 extension String: SpanAttributeConvertible {
     public func toSpanAttribute() -> SpanAttribute {
-        .string(self)
+        return .string(self)
     }
 }
 
 extension Int: SpanAttributeConvertible {
     public func toSpanAttribute() -> SpanAttribute {
-        .int(self)
+        return .int(self)
     }
 }
 
 extension Double: SpanAttributeConvertible {
     public func toSpanAttribute() -> SpanAttribute {
-        .double(self)
+        return .double(self)
     }
 }
 
 extension Bool: SpanAttributeConvertible {
     public func toSpanAttribute() -> SpanAttribute {
-        .bool(self)
+        return .bool(self)
     }
 }
 
 extension Array: SpanAttributeConvertible where Element: SpanAttributeConvertible {
     public func toSpanAttribute() -> SpanAttribute {
-        .array(self.map { $0.toSpanAttribute() })
+        return .array(self.map { $0.toSpanAttribute() })
     }
 }
 
@@ -274,7 +283,7 @@ extension SpanAttribute: ExpressibleByStringLiteral {
 }
 
 extension SpanAttribute: ExpressibleByStringInterpolation {
-    public init(stringInterpolation value: Self.StringInterpolation) {
+    public init(stringInterpolation value: SpanAttribute.StringInterpolation) {
         self = .string("\(value)")
     }
 }
@@ -303,6 +312,7 @@ extension SpanAttribute: ExpressibleByArrayLiteral {
     }
 }
 
+#if compiler(>=5.2)
 /// A collection of `SpanAttribute`s.
 @dynamicMemberLookup
 public struct SpanAttributes: Equatable {
@@ -353,7 +363,33 @@ public struct SpanAttributes: Equatable {
         where Namespace: SpanAttributeNamespace {
         SpanAttribute.__namespace[keyPath: dynamicMember]
     }
+}
+#else
+public struct SpanAttributes: Equatable {
+    private var _attributes = [String: SpanAttribute]()
 
+    /// Create a set of attributes by wrapping the given dictionary.
+    /// - Parameter attributes: The attributes dictionary to wrap.
+    public init(_ attributes: [String: SpanAttribute]) {
+        self._attributes = attributes
+    }
+
+    /// Accesses the `SpanAttribute` with the given name for reading and writing.
+    ///
+    /// - Parameter name: The name of the attribute used to identify the attribute.
+    /// - Returns: The `SpanAttribute` identified by the given name, or `nil` if it's not present.
+    public subscript(_ name: String) -> SpanAttribute? {
+        get {
+            return self._attributes[name]
+        }
+        set {
+            self._attributes[name] = newValue
+        }
+    }
+}
+#endif
+
+extension SpanAttributes {
     /// Calls the given callback for each attribute stored in this collection.
     /// - Parameter callback: The function to call for each attribute.
     public func forEach(_ callback: (String, SpanAttribute) -> Void) {
@@ -362,7 +398,7 @@ public struct SpanAttributes: Equatable {
 
     /// Returns true if the collection contains no attributes.
     public var isEmpty: Bool {
-        self._attributes.isEmpty
+        return self._attributes.isEmpty
     }
 }
 

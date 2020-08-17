@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=5.2)
 import TracingInstrumentation
 
 extension SpanAttributes {
@@ -48,3 +49,4 @@ public struct EndUserAttributes: SpanAttributeNamespace {
         public var scope: SpanAttributeKey<String> { "enduser.scope" }
     }
 }
+#endif
