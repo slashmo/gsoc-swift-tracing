@@ -22,12 +22,13 @@ public protocol Span {
     /// The operation name is a human-readable string which concisely identifies the work represented by the `Span`.
     var operationName: String { get }
 
-    /// The status of this span.
-    var status: SpanStatus? { get set }
-
     /// The read-only `BaggageContext` of this `Span`, set when starting this `Span`.
     var context: BaggageContext { get }
 
+    /// Sett the status..
+    /// - Parameter status: The status of this `Span`.
+    mutating func setStatus(_ status: SpanStatus)
+    
     /// Add a `SpanEvent` in place.
     /// - Parameter event: The `SpanEvent` to add to this `Span`.
     mutating func addEvent(_ event: SpanEvent)

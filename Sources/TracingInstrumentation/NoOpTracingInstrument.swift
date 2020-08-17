@@ -47,11 +47,12 @@ public struct NoOpTracingInstrument: TracingInstrument {
 
     public struct NoOpSpan: Span {
         public var operationName: String = ""
-        public var status: SpanStatus?
 
         public var context: BaggageContext {
             .init()
         }
+
+        public mutating func setStatus(_ status: SpanStatus) {}
 
         public mutating func addLink(_ link: SpanLink) {}
 
