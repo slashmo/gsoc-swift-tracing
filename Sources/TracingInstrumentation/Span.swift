@@ -192,11 +192,9 @@ public enum SpanAttribute: Equatable {
     case array([SpanAttribute])
     case stringConvertible(CustomStringConvertible)
 
-    #if swift(>=5.2)
     /// This is a "magic value" that is used to enable the KeyPath based accessors to specific attributes.
     /// This value will never be stored or returned, and any attempt of doing so would WILL crash your application.
     case __namespace
-    #endif
 
     internal var anyValue: Any {
         switch self {
@@ -212,10 +210,8 @@ public enum SpanAttribute: Equatable {
             return value
         case .stringConvertible(let value):
             return value
-        #if swift(>=5.2)
         case .__namespace:
             fatalError("__namespace MUST NOT be stored not can be extracted from using anyValue")
-        #endif
         }
     }
 
@@ -234,10 +230,8 @@ public enum SpanAttribute: Equatable {
              (.array, _),
              (.stringConvertible, _):
             return false
-        #if swift(>=5.2)
         case (.__namespace, _):
             return false
-        #endif
         }
     }
 }
@@ -317,7 +311,14 @@ extension SpanAttribute: ExpressibleByArrayLiteral {
 @dynamicMemberLookup
 public struct SpanAttributes: Equatable {
     private var _attributes = [String: SpanAttribute]()
+}
+#else
+public struct SpanAttributes: Equatable {
+    private var _attributes = [String: SpanAttribute]()
+}
+#endif
 
+extension SpanAttributes {
     /// Create a set of attributes by wrapping the given dictionary.
     /// - Parameter attributes: The attributes dictionary to wrap.
     public init(_ attributes: [String: SpanAttribute]) {
@@ -330,11 +331,11 @@ public struct SpanAttributes: Equatable {
     /// - Returns: The `SpanAttribute` identified by the given name, or `nil` if it's not present.
     public subscript(_ name: String) -> SpanAttribute? {
         get {
-            self._attributes[name]
+            return self._attributes[name]
         }
         set {
             switch newValue {
-            case .__namespace:
+            case .some(.__namespace):
                 fatalError("__namespace magic value MUST NOT be stored as an attribute. Attempted to store under [\(name)] key.")
             default:
                 self._attributes[name] = newValue
@@ -342,6 +343,20 @@ public struct SpanAttributes: Equatable {
         }
     }
 
+    /// Calls the given callback for each attribute stored in this collection.
+    /// - Parameter callback: The function to call for each attribute.
+    public func forEach(_ callback: (String, SpanAttribute) -> Void) {
+        self._attributes.forEach { callback($0.key, $0.1) }
+    }
+
+    /// Returns true if the collection contains no attributes.
+    public var isEmpty: Bool {
+        return self._attributes.isEmpty
+    }
+}
+
+#if swift(>=5.2)
+extension SpanAttributes {
     /// Enables for type-safe fluent accessors for attributes.
     ///
     // TODO: document the pattern maybe on SpanAttributes?
@@ -364,43 +379,7 @@ public struct SpanAttributes: Equatable {
         SpanAttribute.__namespace[keyPath: dynamicMember]
     }
 }
-#else
-public struct SpanAttributes: Equatable {
-    private var _attributes = [String: SpanAttribute]()
-
-    /// Create a set of attributes by wrapping the given dictionary.
-    /// - Parameter attributes: The attributes dictionary to wrap.
-    public init(_ attributes: [String: SpanAttribute]) {
-        self._attributes = attributes
-    }
-
-    /// Accesses the `SpanAttribute` with the given name for reading and writing.
-    ///
-    /// - Parameter name: The name of the attribute used to identify the attribute.
-    /// - Returns: The `SpanAttribute` identified by the given name, or `nil` if it's not present.
-    public subscript(_ name: String) -> SpanAttribute? {
-        get {
-            return self._attributes[name]
-        }
-        set {
-            self._attributes[name] = newValue
-        }
-    }
-}
 #endif
-
-extension SpanAttributes {
-    /// Calls the given callback for each attribute stored in this collection.
-    /// - Parameter callback: The function to call for each attribute.
-    public func forEach(_ callback: (String, SpanAttribute) -> Void) {
-        self._attributes.forEach { callback($0.key, $0.1) }
-    }
-
-    /// Returns true if the collection contains no attributes.
-    public var isEmpty: Bool {
-        return self._attributes.isEmpty
-    }
-}
 
 extension SpanAttributes: ExpressibleByDictionaryLiteral {
     public init(dictionaryLiteral elements: (String, SpanAttribute)...) {
