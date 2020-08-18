@@ -105,7 +105,6 @@ final class SpanTests: XCTestCase {
     }
 
     func testSpanAttributesUX() {
-        #if swift(>=5.2)
         var attributes: SpanAttributes = [:]
 
         // normally we can use just the span attribute values, and it is not type safe or guided in any way:
@@ -120,6 +119,8 @@ final class SpanTests: XCTestCase {
         XCTAssertEqual(attributes["meaning.of.life"], SpanAttribute.int(42))
         XCTAssertEqual(attributes["alive"], SpanAttribute.bool(false))
 
+        // using swift 5.2, we can improve upon that by using type-safe, keypath-based subscripts:
+        #if swift(>=5.2)
         // An import like: `import OpenTelemetryInstrumentationSupport` can enable type-safe well defined attributes,
         // e.g. as defined in https://github.com/open-telemetry/opentelemetry-specification/tree/master/specification/trace/semantic_conventions
         attributes.name = "kappa"
