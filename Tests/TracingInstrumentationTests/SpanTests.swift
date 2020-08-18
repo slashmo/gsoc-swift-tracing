@@ -193,7 +193,7 @@ final class SpanTests: XCTestCase {
         #if swift(>=5.2)
         XCTAssertEqual(child.links[0].attributes.sampleHttp.statusCode, 418)
         #else
-        guard case .int(let statusCode) = child.links[0].attributes["http.status_code"] else {
+        guard case .some(.int(let statusCode)) = child.links[0].attributes["http.status_code"] else {
             XCTFail("Expected int value for http.status_code")
             return
         }
