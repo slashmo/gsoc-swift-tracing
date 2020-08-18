@@ -19,7 +19,7 @@ import XCTest
 
 final class SpanAttributeSemanticsTests: XCTestCase {
     func testDynamicMemberLookup() {
-        #if compiler(>=5.2)
+        #if swift(>=5.2)
         var attributes: SpanAttributes = [:]
 
         attributes.http.method = "GET"

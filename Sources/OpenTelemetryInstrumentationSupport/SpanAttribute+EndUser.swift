@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=5.2)
+#if swift(>=5.2)
 import TracingInstrumentation
 
 extension SpanAttributes {

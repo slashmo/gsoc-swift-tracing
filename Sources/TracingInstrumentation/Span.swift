@@ -132,7 +132,7 @@ public struct SpanAttributeKey<T>: Hashable, ExpressibleByStringLiteral where T:
     }
 }
 
-#if compiler(>=5.2)
+#if swift(>=5.2)
 @dynamicMemberLookup
 public protocol SpanAttributeNamespace {
     /// Type that contains the nested attributes, e.g. HTTPAttributes which would contain `statusCode` and similar vars.
@@ -192,7 +192,7 @@ public enum SpanAttribute: Equatable {
     case array([SpanAttribute])
     case stringConvertible(CustomStringConvertible)
 
-    #if compiler(>=5.2)
+    #if swift(>=5.2)
     /// This is a "magic value" that is used to enable the KeyPath based accessors to specific attributes.
     /// This value will never be stored or returned, and any attempt of doing so would WILL crash your application.
     case __namespace
@@ -212,7 +212,7 @@ public enum SpanAttribute: Equatable {
             return value
         case .stringConvertible(let value):
             return value
-        #if compiler(>=5.2)
+        #if swift(>=5.2)
         case .__namespace:
             fatalError("__namespace MUST NOT be stored not can be extracted from using anyValue")
         #endif
@@ -234,7 +234,7 @@ public enum SpanAttribute: Equatable {
              (.array, _),
              (.stringConvertible, _):
             return false
-        #if compiler(>=5.2)
+        #if swift(>=5.2)
         case (.__namespace, _):
             return false
         #endif
@@ -312,7 +312,7 @@ extension SpanAttribute: ExpressibleByArrayLiteral {
     }
 }
 
-#if compiler(>=5.2)
+#if swift(>=5.2)
 /// A collection of `SpanAttribute`s.
 @dynamicMemberLookup
 public struct SpanAttributes: Equatable {

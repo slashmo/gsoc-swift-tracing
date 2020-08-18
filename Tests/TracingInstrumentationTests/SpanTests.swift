@@ -105,7 +105,7 @@ final class SpanTests: XCTestCase {
     }
 
     func testSpanAttributesUX() {
-        #if compiler(>=5.2)
+        #if swift(>=5.2)
         var attributes: SpanAttributes = [:]
 
         // normally we can use just the span attribute values, and it is not type safe or guided in any way:
@@ -133,7 +133,7 @@ final class SpanTests: XCTestCase {
     }
 
     func testSpanAttributesCustomValue() {
-        #if compiler(>=5.2)
+        #if swift(>=5.2)
         var attributes: SpanAttributes = [:]
 
         // normally we can use just the span attribute values, and it is not type safe or guided in any way:
@@ -179,7 +179,7 @@ final class SpanTests: XCTestCase {
             onEnd: { _ in }
         )
 
-        #if compiler(>=5.2)
+        #if swift(>=5.2)
         var attributes = SpanAttributes()
         attributes.sampleHttp.statusCode = 418
         #else
@@ -189,7 +189,7 @@ final class SpanTests: XCTestCase {
 
         XCTAssertEqual(child.links.count, 1)
         XCTAssertEqual(child.links[0].context[TestBaggageContextKey.self], "test")
-        #if compiler(>=5.2)
+        #if swift(>=5.2)
         XCTAssertEqual(child.links[0].attributes.sampleHttp.statusCode, 418)
         #endif
     }
@@ -204,7 +204,7 @@ extension SpanAttribute {
     }
 }
 
-#if compiler(>=5.2)
+#if swift(>=5.2)
 extension SpanAttributes {
     public var sampleHttp: HTTPAttributes {
         get {
