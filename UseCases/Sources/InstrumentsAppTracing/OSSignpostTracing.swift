@@ -81,7 +81,7 @@ public struct OSSignpostTracingInstrument: TracingInstrument {
 @available(tvOS 10.0, *)
 @available(watchOS 3.0, *)
 final class OSSignpostSpan: Span {
-    let operationName: String
+    private let operationName: String
     var context: BaggageContext
 
     private let log: OSLog

@@ -46,8 +46,6 @@ public struct NoOpTracingInstrument: TracingInstrument {
         Carrier == Extractor.Carrier {}
 
     public struct NoOpSpan: Span {
-        public var operationName: String = ""
-
         public var context: BaggageContext {
             return .init()
         }

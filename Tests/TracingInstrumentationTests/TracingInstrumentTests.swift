@@ -108,7 +108,7 @@ extension TestTracer {
 // MARK: - TestSpan
 
 struct TestSpan: Span {
-    let operationName: String
+    private let operationName: String
     private let kind: SpanKind
 
     private var status: SpanStatus?

@@ -89,7 +89,7 @@ private final class TracedLockPrintlnTracer: TracingInstrument {
         Carrier == Extractor.Carrier {}
 
     struct TracedLockPrintlnSpan: Span {
-        let operationName: String
+        private let operationName: String
         private let kind: SpanKind
 
         private var status: SpanStatus?
