@@ -19,9 +19,6 @@ import Baggage
 ///
 /// - SeeAlso: [OpenTelemetry Specification: Span](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/api.md#span).
 public protocol Span {
-    /// The operation name is a human-readable string which concisely identifies the work represented by the `Span`.
-    var operationName: String { get }
-
     /// The read-only `BaggageContext` of this `Span`, set when starting this `Span`.
     var context: BaggageContext { get }
 
