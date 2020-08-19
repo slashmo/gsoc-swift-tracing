@@ -177,7 +177,7 @@ typealias HTTPHeaders = [(String, String)]
 
 struct HTTPHeadersExtractor: ExtractorProtocol {
     func extract(key: String, from headers: HTTPHeaders) -> String? {
-        headers.first(where: { $0.0 == key })?.1
+        return headers.first(where: { $0.0 == key })?.1
     }
 }
 

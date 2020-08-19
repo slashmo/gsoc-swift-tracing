@@ -124,6 +124,7 @@ public struct SpanAttributeKey<T>: Hashable, ExpressibleByStringLiteral where T:
     }
 }
 
+#if swift(>=5.2)
 @dynamicMemberLookup
 public protocol SpanAttributeNamespace {
     /// Type that contains the nested attributes, e.g. HTTPAttributes which would contain `statusCode` and similar vars.
@@ -168,6 +169,7 @@ extension SpanAttributeNamespace {
         SpanAttribute.__namespace[keyPath: dynamicMember]
     }
 }
+#endif
 
 /// The value of an attribute used to describe a `Span` or `SpanEvent`.
 public enum SpanAttribute: Equatable {
@@ -218,8 +220,9 @@ public enum SpanAttribute: Equatable {
              (.double, _),
              (.bool, _),
              (.array, _),
-             (.stringConvertible, _),
-             (.__namespace, _):
+             (.stringConvertible, _):
+            return false
+        case (.__namespace, _):
             return false
         }
     }
@@ -231,31 +234,31 @@ public protocol SpanAttributeConvertible {
 
 extension String: SpanAttributeConvertible {
     public func toSpanAttribute() -> SpanAttribute {
-        .string(self)
+        return .string(self)
     }
 }
 
 extension Int: SpanAttributeConvertible {
     public func toSpanAttribute() -> SpanAttribute {
-        .int(self)
+        return .int(self)
     }
 }
 
 extension Double: SpanAttributeConvertible {
     public func toSpanAttribute() -> SpanAttribute {
-        .double(self)
+        return .double(self)
     }
 }
 
 extension Bool: SpanAttributeConvertible {
     public func toSpanAttribute() -> SpanAttribute {
-        .bool(self)
+        return .bool(self)
     }
 }
 
 extension Array: SpanAttributeConvertible where Element: SpanAttributeConvertible {
     public func toSpanAttribute() -> SpanAttribute {
-        .array(self.map { $0.toSpanAttribute() })
+        return .array(self.map { $0.toSpanAttribute() })
     }
 }
 
@@ -266,7 +269,7 @@ extension SpanAttribute: ExpressibleByStringLiteral {
 }
 
 extension SpanAttribute: ExpressibleByStringInterpolation {
-    public init(stringInterpolation value: Self.StringInterpolation) {
+    public init(stringInterpolation value: SpanAttribute.StringInterpolation) {
         self = .string("\(value)")
     }
 }
@@ -295,11 +298,19 @@ extension SpanAttribute: ExpressibleByArrayLiteral {
     }
 }
 
+#if swift(>=5.2)
 /// A collection of `SpanAttribute`s.
 @dynamicMemberLookup
 public struct SpanAttributes: Equatable {
     private var _attributes = [String: SpanAttribute]()
+}
+#else
+public struct SpanAttributes: Equatable {
+    private var _attributes = [String: SpanAttribute]()
+}
+#endif
 
+extension SpanAttributes {
     /// Create a set of attributes by wrapping the given dictionary.
     /// - Parameter attributes: The attributes dictionary to wrap.
     public init(_ attributes: [String: SpanAttribute]) {
@@ -312,11 +323,11 @@ public struct SpanAttributes: Equatable {
     /// - Returns: The `SpanAttribute` identified by the given name, or `nil` if it's not present.
     public subscript(_ name: String) -> SpanAttribute? {
         get {
-            self._attributes[name]
+            return self._attributes[name]
         }
         set {
             switch newValue {
-            case .__namespace:
+            case .some(.__namespace):
                 fatalError("__namespace magic value MUST NOT be stored as an attribute. Attempted to store under [\(name)] key.")
             default:
                 self._attributes[name] = newValue
@@ -324,6 +335,20 @@ public struct SpanAttributes: Equatable {
         }
     }
 
+    /// Calls the given callback for each attribute stored in this collection.
+    /// - Parameter callback: The function to call for each attribute.
+    public func forEach(_ callback: (String, SpanAttribute) -> Void) {
+        self._attributes.forEach { callback($0.key, $0.1) }
+    }
+
+    /// Returns true if the collection contains no attributes.
+    public var isEmpty: Bool {
+        return self._attributes.isEmpty
+    }
+}
+
+#if swift(>=5.2)
+extension SpanAttributes {
     /// Enables for type-safe fluent accessors for attributes.
     ///
     // TODO: document the pattern maybe on SpanAttributes?
@@ -345,18 +370,8 @@ public struct SpanAttributes: Equatable {
         where Namespace: SpanAttributeNamespace {
         SpanAttribute.__namespace[keyPath: dynamicMember]
     }
-
-    /// Calls the given callback for each attribute stored in this collection.
-    /// - Parameter callback: The function to call for each attribute.
-    public func forEach(_ callback: (String, SpanAttribute) -> Void) {
-        self._attributes.forEach { callback($0.key, $0.1) }
-    }
-
-    /// Returns true if the collection contains no attributes.
-    public var isEmpty: Bool {
-        self._attributes.isEmpty
-    }
 }
+#endif
 
 extension SpanAttributes: ExpressibleByDictionaryLiteral {
     public init(dictionaryLiteral elements: (String, SpanAttribute)...) {
