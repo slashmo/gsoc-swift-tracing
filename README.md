@@ -15,9 +15,9 @@ with minimal changes to your actual code.
 
 When instrumenting server applications there are typically three parties involved:
 
-1. End-Users developing server-side applications
-2. Library/Framework authors providing building blocks to create these applications
-3. Instruments such as tracers collecting metadata about your application
+1. [End-Users](#end-users-setting-up-instruments) developing server-side applications
+2. [Library/Framework authors](#libraryframework-authors-instrumenting-your-software) providing building blocks to create these applications
+3. [Instrument developers](#instrument-developers-creating-an-instrument) providing tools to collect distributed metadata about your application
 
 For server-side applications to be instrumented correctly, i.e. providing useful information about your system, these
 three parts have to play along nicely.
