@@ -160,9 +160,9 @@ carry the context throughout your entire call chain in order to avoid dropping m
 ### Tracing your library
 
 When your library/framework can benefit from tracing, you should make use of it by addentionally integrating the
-`TracingInstrumentation` library. In order to work with the tracer
+`Tracing` library. In order to work with the tracer
 [configured by the end-user](#Bootstrapping-the-Instrumentation-System), it adds a property to `InstrumentationSystem`
-that gives you back a `TracingInstrument`. You can then use that tracer to start `Span`s. In an HTTP client you e.g.
+that gives you back a `Tracer`. You can then use that tracer to start `Span`s. In an HTTP client you e.g.
 should start a `Span` when sending the outgoing HTTP request:
 
 ```swift
@@ -172,7 +172,7 @@ func get(url: String, context: BaggageContextCarrier) {
   // inject the request headers into the baggage context as explained above
 
   // start a span for the outgoing request
-  let tracer = InstrumentationSystem.tracingInstrument
+  let tracer = InstrumentationSystem.tracer
   var span = tracer.startSpan(named: "HTTP GET", context: context, ofKind: .client)
 
   // set attributes on the span
@@ -196,9 +196,8 @@ func get(url: String, context: BaggageContextCarrier) {
 
 ## Instrument developers: Creating an instrument
 
-Creating an instrument means adopting the `Instrument` protocol (or `TracingInstrument` in case you develop a tracer).
-`Instrument` is part of the `Instrumentation` library & `TracingInstrumentation` contains the `TracingInstrument`
-protocol.
+Creating an instrument means adopting the `Instrument` protocol (or `Tracer` in case you develop a tracer).
+`Instrument` is part of the `Instrumentation` library & `Tracing` contains the `Tracer` protocol.
 
 `Instrument` has two requirements:
 
@@ -215,7 +214,7 @@ how to retrieve values from the `BaggageContext` and how to set values on it.
 
 When creating a tracer you need to create two types:
 
-1. Your tracer conforming to `TracingInstrument`
+1. Your tracer conforming to `Tracer`
 2. A span class conforming to `Span`
 
 > The `Span` conforms to the standard rules defined in [OpenTelemetry](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/api.md#span), so if unsure about usage patterns, you can refer to this specification and examples referring to it.
