@@ -20,12 +20,13 @@ it's primary use is instrumenting multi-threaded and distributed systems with Di
 
 When instrumenting server applications there are typically three parties involved:
 
-1. [End-Users](#end-users-setting-up-instruments) developing server-side applications
-2. [Library/Framework authors](#libraryframework-authors-instrumenting-your-software) providing building blocks to create these applications
+1. [Application developers](#application-developers-setting-up-instruments) creating server-side applications
+2. [Library/Framework developers](#libraryframework-developers-instrumenting-your-software) providing building blocks to create these applications
 3. [Instrument developers](#instrument-developers-creating-an-instrument) providing tools to collect distributed metadata about your application
 
-For server-side applications to be instrumented correctly, i.e. providing useful information about your system, these
-three parts have to play along nicely.
+For applications to be instrumented correctly these three parts have to play along nicely.
+
+### Use-case Example
 
 Let's say you build an API for a fruit store that has two services, one for ordering goods and one that checks what
 items are available in storage. Your frontend might make an HTTP request to the order service which then makes a
@@ -44,16 +45,20 @@ one such trace presented in [Zipkin](https://zipkin.io):
 
 In the fruit store example, we'd want a span for both the incoming HTTP request to the order service, its outgoing
 request to the storage service, one for handling that request, and a span respresenting the querying of a database.
-Each of these spans would contain information useful for debugging the interplay of multiple spans.
+Spans naturally form a parent-child relationship, and by visually analyzing a trace we can easily spot bottlenecks for
+performance profiling use-cases, and for failure debugging situations we can benefit from the application specific
+metadata that spans can carry (such as noticing that failures only occur e.g. when the username contains some illegal
+character or some other otherwise hard to notice situation).
 
 ### Context propagation
 
-It's very unlikely for instrumentation to only be happening in one place. Because of that, it's essential for a context
-object to be passed around your application and the libraries/frameworks you depend on, but also carried over
-asynchronous boundaries like an HTTP call to another service of your app.
+For instrumentation and tracing to work, certain pieces of metadata (usually in the form of identifiers), must be
+carried throughout the entire system–including across process and service boundaries. Because of that, it's essential
+for a context object to be passed around your application and the libraries/frameworks you depend on, but also carried
+over asynchronous boundaries like an HTTP call to another service of your app.
 
-This context is then used by instruments to store metadata (e.g. a trace id) to connect different pieces of one request.
-We call this context **`BaggageContext`**. It's vendored in its own library,
+In Swift this is done by passing a **`BaggageContext`** explicitly through APIs which participate in
+instrumentation/tracing. It's vendored in its own library,
 [Baggage](https://github.com/slashmo/gsoc-swift-baggage-context).
 
 > We intentionally didn't call this something like TraceContext as we aim on supporting any kind of instrument,
@@ -63,7 +68,21 @@ For each party involved we offer different libraries that all make use of `Bagga
 
 ---
 
-## End-users: Setting up instruments
+## Adoption
+
+The following libraries already support swift tracing or baggage context in their APIs:
+
+| Library | Integrates | Status |
+| --- | --- | --- |
+| Swift NIO | `Baggage` | [PoC #1574](https://github.com/apple/swift-nio/pull/1574) |
+| AsyncHTTPClient | `Tracing` | [PoC #289](https://github.com/swift-server/async-http-client/pull/289) |
+| Swift gRPC | `Tracing` | [PoC #941](https://github.com/grpc/grpc-swift/pull/941) |
+
+If you know of any other library please send in a PR to add it to the list, thank you!
+
+---
+
+## Application Developers: Setting up instruments
 
 As an end-user building server applications you get to choose what instruments to use to instrument your system. Here's
 all the steps you need to take to get up and running:
@@ -84,16 +103,19 @@ To your main target, add a dependency on the `Instrumentation library` and the i
 
 Then, [bootstrap the instrumentation system](#Bootstrapping-the-Instrumentation-System) to use `FancyInstrument`.
 
-### Passing around BaggageContext
+### Passing BaggageContext
 
 `BaggageContext` should always be passed around explicitly, so it's very likely for the libraries you use to expect
 a `BaggageContext`. Make sure to always pass along the context that's previously handed to you. E.g., when making an
 HTTP request using `AsyncHTTPClient` in a `NIO` handler, you can use the `ChannelHandlerContext`s `baggage` property to
 access the `BaggageContext`.
 
+[Check out the `BaggageContext` repository](https://github.com/slashmo/gsoc-swift-baggage-context) for detailed
+documentation about context passing.
+
 > Note that instrumentation of `AsyncHTTPClient` and the `baggage` property of `ChannelHandlerContext` are still WIP.
 
-## Library/Framework authors: Instrumenting your software
+## Library/Framework developers: Instrumenting your software
 
 ### Extracting & injecting BaggageContext
 
@@ -135,7 +157,7 @@ carry the context throughout your entire call chain in order to avoid dropping m
 > For more information on `BaggageContext` & `BaggageContextCarrier` check out the
 [Baggage library's documentation](https://github.com/slashmo/gsoc-swift-baggage-context).
 
-### Tracing-specific APIs
+### Tracing your library
 
 When your library/framework can benefit from tracing, you should make use of it by addentionally integrating the
 `TracingInstrumentation` library. In order to work with the tracer
@@ -166,6 +188,9 @@ func get(url: String, context: BaggageContextCarrier) {
 }
 ```
 
+> ⚠️ Make sure to ALWAYS end spans. Ensure that all paths taken by the code will result in ending the span.
+> Make sure that error cases also set the error attribute and end the span.
+
 > In the above example we used the semantic `http.method` attribute that gets exposed via the
 `OpenTelemetryInstrumentationSupport` library.
 
@@ -186,14 +211,14 @@ act on the provided information or to add additional information to be carried a
 > Check out the [`Baggage` documentation](https://github.com/slashmo/gsoc-swift-baggage-context) for more information on
 how to retrieve values from the `BaggageContext` and how to set values on it.
 
-### Creating a tracer
+### Creating a `Tracer`
 
 When creating a tracer you need to create two types:
 
 1. Your tracer conforming to `TracingInstrument`
 2. A span class conforming to `Span`
 
-> Our `Span` protocol is inspired by [OpenTelemetry](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/api.md#span)
+> The `Span` conforms to the standard rules defined in [OpenTelemetry](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/api.md#span), so if unsure about usage patterns, you can refer to this specification and examples referring to it.
 
 ---
 
