@@ -9,6 +9,11 @@ This is a collection of Swift libraries enabling the instrumentation of your ser
 as tracers. Our goal is to provide a common foundation that allows you too freely choose how to instrument your system
 with minimal changes to your actual code.
 
+While Swift Tracing allows building all kinds of _instruments_ which can co-exist in applications transparently,
+it's primary use is instrumenting multi-threaded and distributed systems with Distributed Traces.
+
+> The tracing API is compatible with the [Open Telemetry specification](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/trace/api.md).
+
 ---
 
 ## Instrumentation
