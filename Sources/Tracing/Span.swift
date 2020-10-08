@@ -329,6 +329,11 @@ extension SpanAttributes {
     public func forEach(_ callback: (String, SpanAttribute) -> Void) {
         self._attributes.forEach { callback($0.key, $0.1) }
     }
+    
+    /// Returns all attribute names.
+    public var keys: Dictionary<String, SpanAttribute>.Keys {
+        return self._attributes.keys
+    }
 
     /// Returns true if the collection contains no attributes.
     public var isEmpty: Bool {
