@@ -5,6 +5,8 @@
 [![Swift 5.0](https://img.shields.io/badge/Swift-5.0-ED523F.svg?style=flat)](https://swift.org/download/)
 [![CI](https://github.com/slashmo/gsoc-swift-tracing/workflows/CI/badge.svg)](https://github.com/slashmo/gsoc-swift-tracing/actions?query=workflow%3ACI)
 
+### 🚌 This repo was moved to [`apple/swift-distributed-tracing`](https://github.com/apple/swift-distributed-tracing)
+
 This is a collection of Swift libraries enabling the instrumentation of your server side applications using tools such
 as tracers. Our goal is to provide a common foundation that allows you too freely choose how to instrument your system
 with minimal changes to your actual code.
